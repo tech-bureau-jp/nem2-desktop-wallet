@@ -232,6 +232,8 @@
         }
 
         skipInput (index) {
+            const account = this.createAccount()
+            this.loginWallet(account)
             this.tags = index
         }
 
@@ -296,6 +298,7 @@
                 balance: balance
             }
             saveData = Object.assign(saveData, this.storeWallet)
+            this.$store.commit('SET_WALLET', saveData)
             for (let i in localData) {
                 if (localData[i].address === address) {
                     localData[i] = saveData
