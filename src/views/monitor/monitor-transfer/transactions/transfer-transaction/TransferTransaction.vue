@@ -71,12 +71,13 @@
         Id,
         NamespaceMosaicIdGenerator
     } from 'nem2-sdk'
-    import {Component, Vue} from 'vue-property-decorator';
+    import {Component, Vue, Watch} from 'vue-property-decorator';
     import {accountInterface} from '@/interface/sdkAccount'
     import {mosaicInterface} from '@/interface/sdkMosaic'
     import {transactionInterface} from '@/interface/sdkTransaction'
     import {blockchainInterface} from '@/interface/sdkBlockchain'
     import CheckPWDialog from '@/components/checkPW-dialog/CheckPWDialog.vue'
+    import Message from "@/message/Message";
 
 
     @Component({
@@ -88,7 +89,6 @@
         showCheckPWDialog = false
         showAlert = false
 
-        accountPrivateKey = ''
         accountPublicKey = ''
         accountAddress = ''
         node = ''
@@ -98,7 +98,7 @@
         mosaic: any = ''
         amount: any = '0'
         remark = ''
-        fee: any = '0.050000'
+        fee: any = '0'
         generationHash = ''
 
         isShowSubAlias = false
@@ -109,7 +109,7 @@
         }
 
         initForm() {
-            this.fee = '0.05000'
+            this.fee = '0'
             this.remark = ''
             this.address = ''
             this.mosaic = ''
@@ -123,12 +123,12 @@
             this.showCheckPWDialog = true
         }
 
-        sendTransaction() {
+        sendTransaction(key) {
             const that = this
-            let {accountPrivateKey, accountPublicKey, accountAddress, node, address, mosaic, amount, remark, fee, generationHash} = this
+            let { accountPublicKey, accountAddress, node, address, mosaic, amount, remark, fee, generationHash} = this
 
             //test data--
-            const account = Account.createFromPrivateKey(accountPrivateKey, NetworkType.MIJIN_TEST)
+            const account = Account.createFromPrivateKey(key, NetworkType.MIJIN_TEST)
             //--test data
             // create tx
             const mosaics = mosaic ? [new Mosaic(new MosaicId(mosaic), UInt64.fromUint(amount))] : []
@@ -149,8 +149,8 @@
                     // get announce status
                     announceResult.result.announceStatus.subscribe((announceInfo: any) => {
                         console.log(signature)
-                        that.$Message.success('success')
-                        that.manageAlert('success')
+                        that.$Message.success(Message.SUCCESS)
+                        that.manageAlert(Message.SUCCESS)
                         that.initForm()
                     })
                 })
@@ -161,15 +161,15 @@
         checkForm() {
             const {address, mosaic, amount, remark, fee} = this
             if (address.length < 40) {
-                this.showErrorMessage(this['$t']('address_format_error'))
+                this.showErrorMessage(Message.ADDRESS_FORMAT_ERROR)
                 return false
             }
             if (amount < 0) {
-                this.showErrorMessage(this['$t']('amount_can_not_be_less_than_0'))
+                this.showErrorMessage(Message.AMOUNT_LESS_THAN_0_ERROR)
                 return false
             }
             if (fee < 0) {
-                this.showErrorMessage(this['$t']('fee_can_not_be_less_than_0'))
+                this.showErrorMessage(Message.FEE_LESS_THAN_0_ERROR)
                 return false
             }
             return true
@@ -182,7 +182,7 @@
 
         async getMosaicList() {
             const that = this
-            let {accountPrivateKey, accountPublicKey, currentXem, accountAddress, node, address, mosaic, amount, remark, fee} = this
+            let {accountPublicKey, currentXem, accountAddress, node, address, mosaic, amount, remark, fee} = this
             const {currentXEM1, currentXEM2} = this.$store.state.account
             let mosaicIdList = []
             await accountInterface.getAccountInfo({
@@ -198,7 +198,18 @@
                         item.label = item.toHex()
                         return item
                     })
-
+                    let isCrrentXEMExists = mosaicList.every((item) => {
+                        if (item.value == currentXEM1 || item.value == currentXEM2) {
+                            return false
+                        }
+                        return true
+                    })
+                    if (isCrrentXEMExists) {
+                        mosaicList.unshift({
+                            value: currentXEM1,
+                            label:'nem.xem'
+                        })
+                    }
                     // get namespace
                     // mosaicInterface.getMosaicsNames({
                     //     node,
@@ -296,7 +307,6 @@
             })
         }
         initData() {
-            this.accountPrivateKey = this.getWallet.privateKey
             this.accountPublicKey = this.getWallet.publicKey
             this.accountAddress = this.getWallet.address
             this.node = this.$store.state.account.node
@@ -308,11 +318,11 @@
             this.showCheckPWDialog = false
         }
 
-        checkEnd(flag) {
-            if (flag) {
-                this.sendTransaction()
+        checkEnd(key) {
+            if (key) {
+                this.sendTransaction(key)
             } else {
-                this.$Message.error('password_error')
+                this.$Message.error(Message.WRONG_PASSWORD_ERROR)
             }
         }
 
@@ -324,6 +334,11 @@
             }, 3000)
         }
 
+        @Watch('getWallet')
+        onGetWalletChange() {
+            this.initData()
+            this.getMosaicList()
+        }
 
         created() {
             // this.initForm()

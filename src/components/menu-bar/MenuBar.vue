@@ -25,17 +25,17 @@
       <div class="controller">
         <div class="window_controller">
           <div>
-                        <span class="pointer" @click="minWindow"></span>
-                        <span class="pointer" ></span>
-                        <span class="pointer" @click="closeWindow"></span>
+            <span class="pointer" @click="minWindow"></span>
+            <span class="pointer" style="opacity: 0.2;cursor: not-allowed"></span>
+            <span class="pointer" @click="closeWindow"></span>
           </div>
         </div>
         <div class="app_controller clear">
           <div :class="[isNodeHealthy?'point_healthy':'point_unhealthy']">
             <Poptip placement="bottom-end">
               <i class="pointer point" @click="toggleNodeList"></i>
-              <span class="network_type_text">
-                {{ $store.state.account.wallet && $store.state.account.wallet.networkType == 144 ? 'MIJIN_TEST':''}}
+              <span class="network_type_text" v-if="$store.state.account.wallet">
+                {{ $store.state.account.wallet.networkType == 144 ? 'MIJIN_TEST':''}}
               </span>
               <div slot="title" class="title">{{$t('current_point')}}：{{$store.state.account.node}}</div>
               <div slot="content">
@@ -46,7 +46,7 @@
 
                 <div class="input_point point_item">
                   <input v-model="inputNodeValue" type="text" :placeholder="$t('please_enter_a_custom_nod_address')">
-                  <span @click="changePointByInput" class="sure_button radius pointer">{{$t('confirm')}}</span>
+                  <span @click="changePointByInput" class="sure_button radius pointer">+</span>
                 </div>
 
               </div>
@@ -80,8 +80,8 @@
     import {localSave, localRead} from '../../utils/util.js'
     import routers from '../../router/routers'
     import axios from 'axios'
-    import monitorSeleted from '@/assets/images/monitor/monitorSeleted.png'
-    import monitorUnselected from '@/assets/images/monitor/monitorUnselected.png'
+    import monitorSeleted from '@/assets/images/window/windowSelected.png'
+    import monitorUnselected from '@/assets/images/window/windowUnselected.png'
     import {blockchainInterface} from '@/interface/sdkBlockchain.js';
 
     @Component
@@ -90,10 +90,16 @@
         inputNodeValue = ''
         nodetList = [
             {
-                value: 'http://3.0.78.183:3000',
+                value: 'http://192.168.0.105:3000',
                 name: 'my-8',
                 url: '3.0.78.183',
                 isSelected: true,
+            },
+            {
+                value: 'http://3.0.78.183:3000',
+                name: 'my-8',
+                url: '3.0.78.183',
+                isSelected: false,
             }, {
                 value: 'http://13.114.200.132:3000',
                 name: 'jp-5',
@@ -121,8 +127,12 @@
         accountAddress = ''
         walletList = []
 
-        get getWallet () {
+        get getWallet() {
             return this.$store.state.account.wallet
+        }
+
+        get getWalletList() {
+            return this.$store.state.app.walletList || []
         }
 
         closeWindow() {
@@ -172,7 +182,6 @@
             if (this.$store.state.app.isInLoginPage) {
                 return
             }
-            console.log('routers', routers)
             const routerIcon = routers[0].children
 
             this.$router.push({
@@ -196,7 +205,7 @@
             const {walletList} = this
             const that = this
             let list = walletList
-            walletList.map((item,index) => {
+            walletList.map((item, index) => {
                 if (item.address == address) {
                     that.$store.state.account.wallet = item
                     list.splice(index, 1)
@@ -204,30 +213,6 @@
                 }
             })
             this.$store.commit('SET_WALLET_LIST', list)
-        }
-
-        initData() {
-            this.languageList = this.$store.state.app.languageList
-            this.currentLanguage = localRead('local')
-            this.$store.state.app.local = {
-                abbr: this.currentLanguage,
-                language: this.$store.state.app.localMap[this.currentLanguage]
-            }
-            this.currentNode = this.$store.state.account.node
-            this.walletList = this.$store.state.app.walletList
-        }
-
-        @Watch('currentNode')
-        onCurrentNode() {
-            const {currentNode} = this
-            this.$store.state.account.node = currentNode
-            const that = this
-            axios.get(currentNode + '/chain/height').then(function (response) {
-                that.isNodeHealthy = true
-                that.getGenerateHash(currentNode)
-            }).catch(function (error) {
-                that.isNodeHealthy = false
-            });
         }
 
         accountQuit() {
@@ -251,8 +236,33 @@
             })
         }
 
+        initData() {
+            this.languageList = this.$store.state.app.languageList
+            this.currentLanguage = localRead('local')
+            this.$store.state.app.local = {
+                abbr: this.currentLanguage,
+                language: this.$store.state.app.localMap[this.currentLanguage]
+            }
+            this.currentNode = this.$store.state.account.node
+            this.walletList = this.getWalletList
+        }
+
+        @Watch('currentNode')
+        onCurrentNode() {
+            const {currentNode} = this
+            this.$store.state.account.node = currentNode
+            const that = this
+            axios.get(currentNode + '/chain/height').then(function (response) {
+                that.isNodeHealthy = true
+                that.getGenerateHash(currentNode)
+            }).catch(function (error) {
+                that.isNodeHealthy = false
+            });
+        }
+
         @Watch('getWallet')
-        onGetWalletChange(){
+        onGetWalletChange() {
+            this.walletList = this.getWalletList
             this.currentWallet = this.getWallet.address
         }
 

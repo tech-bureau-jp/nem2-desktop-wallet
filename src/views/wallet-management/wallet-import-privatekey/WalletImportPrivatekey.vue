@@ -39,7 +39,8 @@ import {NetworkType} from "nem2-sdk";
             {{$t('This_password_is_a_private_key_password_and_will_be_used_when_you_pay')}}
           </div>
           <div class="gray_content">
-            <input class="absolute" v-model="form.password" type="password" :placeholder="$t('please_set_your_password')">
+            <input class="absolute" v-model="form.password" type="password"
+                   :placeholder="$t('please_set_your_password')">
           </div>
         </li>
         <li>
@@ -66,6 +67,7 @@ import {NetworkType} from "nem2-sdk";
     import {localRead, localSave} from '../../../utils/util'
     import {walletInterface} from "../../../interface/sdkWallet"
     import {accountInterface} from "../../../interface/sdkAccount";
+    import Message from "@/message/Message";
     // import "../wallet-import-privatekey/WalletImportPrivatekey.less"
 
     @Component
@@ -80,17 +82,17 @@ import {NetworkType} from "nem2-sdk";
         account = {}
         NetworkTypeList = [
             {
-                value:NetworkType.MIJIN_TEST,
-                label:'MIJIN_TEST'
-            },{
-                value:NetworkType.MAIN_NET,
-                label:'MAIN_NET'
-            },{
-                value:NetworkType.TEST_NET,
-                label:'TEST_NET'
-            },{
-                value:NetworkType.MIJIN,
-                label:'MIJIN'
+                value: NetworkType.MIJIN_TEST,
+                label: 'MIJIN_TEST'
+            }, {
+                value: NetworkType.MAIN_NET,
+                label: 'MAIN_NET'
+            }, {
+                value: NetworkType.TEST_NET,
+                label: 'TEST_NET'
+            }, {
+                value: NetworkType.MIJIN,
+                label: 'MIJIN'
             },
         ]
 
@@ -102,19 +104,19 @@ import {NetworkType} from "nem2-sdk";
 
         checkImport() {
             if (this.form.networkType == 0) {
-                this.$Message.error(this.$t('walletCreateNetTypeRemind'));
+                this.$Message.error(Message.PLEASE_SWITCH_NETWORK);
                 return false
             }
             if (!this.form.walletName || this.form.walletName == '') {
-                this.$Message.error(this.$t('walletCreateWalletNameRemind'));
+                this.$Message.error(Message.WALLET_NAME_INPUT_ERROR);
                 return false
             }
             if (!this.form.password || this.form.password == '') {
-                this.$Message.error(this['$t']('Set_password_input_error'));
+                this.$Message.error(Message.PASSWORD_SETTING_INPUT_ERROR);
                 return false
             }
             if (this.form.password !== this.form.checkPW) {
-                this.$Message.error(this['$t']('Two_passwords_are_inconsistent'));
+                this.$Message.error(Message.INCONSISTENT_PASSWORD_ERROR);
                 return false
             }
             return true
@@ -123,14 +125,14 @@ import {NetworkType} from "nem2-sdk";
         checkPrivateKey() {
             try {
                 if (!this.form.privateKey || this.form.privateKey === '') {
-                    this.$Message.error('Mnemonic_input_error');
+                    this.$Message.error(Message.PASSWORD_SETTING_INPUT_ERROR);
                     return false
                 }
                 const account = Account.createFromPrivateKey(this.form.privateKey, NetworkType.MIJIN_TEST)
                 this.account = account
                 return true
             } catch (e) {
-                this.$Message.error(this['$t']('Mnemonic_input_error'));
+                this.$Message.error(Message.PASSWORD_SETTING_INPUT_ERROR);
                 return false
             }
 
@@ -143,11 +145,11 @@ import {NetworkType} from "nem2-sdk";
             await that.setUserDefault(walletName, account, netType)
         }
 
-        async setUserDefault(name, account, netType) {
+        setUserDefault(name, account, netType) {
             const that = this
             const walletList = this.$store.state.app.walletList
             const style = 'walletItem_bg_' + walletList.length % 3
-            await walletInterface.getWallet({
+            walletInterface.getWallet({
                 name: name,
                 networkType: netType,
                 privateKey: account.privateKey
@@ -162,18 +164,67 @@ import {NetworkType} from "nem2-sdk";
                     mosaics: [],
                     wallet: Wallet.result.wallet,
                     password: Wallet.result.password,
-                    mnemonic: '',
                     balance: 0,
                     style
                 }
+                await that.getMosaicList(storeWallet).then((data) => {
+                    storeWallet = data
+                })
+                await that.getMultisigAccount(storeWallet).then((data) => {
+                    storeWallet = data
+                })
                 that.$store.commit('SET_WALLET', storeWallet)
                 const encryptObj = Crypto.encrypt(Wallet.result.privateKey, that.form['password'])
-                that.localKey(name, encryptObj, Wallet.result.wallet.address.address, netType)
+                that.localKey(storeWallet, encryptObj, {})
                 this.toWalletDetails()
             })
         }
 
-        localKey(walletName, keyObj, address, netType, balance = 0) {
+        async getMosaicList(listItem) {
+            let walletItem = listItem
+            let node = this.$store.state.account.node
+            let currentXEM2 = this.$store.state.account.currentXEM2
+            let currentXEM1 = this.$store.state.account.currentXEM1
+            await accountInterface.getAccountInfo({
+                node,
+                address: walletItem.address
+            }).then(async accountInfoResult => {
+                await accountInfoResult.result.accountInfo.subscribe((accountInfo) => {
+                    let mosaicList = accountInfo.mosaics
+                    mosaicList.map((item) => {
+                        item.hex = item.id.toHex()
+                        if (item.id.toHex() == currentXEM2 || item.id.toHex() == currentXEM1) {
+                            walletItem.balance = item.amount.compact() / 1000000
+                        }
+                    })
+                    walletItem.mosaics = mosaicList
+                }, () => {
+                    walletItem.balance = 0
+                })
+            })
+            return walletItem
+        }
+
+        async getMultisigAccount (listItem) {
+            let walletItem = listItem
+            let node = this.$store.state.account.node
+            await accountInterface.getMultisigAccountInfo({
+                node: node,
+                address: walletItem.address
+            }).then((multisigAccountInfo)=>{
+                if(typeof (multisigAccountInfo.result.multisigAccountInfo) == 'object'){
+                    multisigAccountInfo.result.multisigAccountInfo['subscribe']((accountInfo)=>{
+                        walletItem.isMultisig = true
+                    },()=>{
+                        console.log('not multisigAccount')
+                        walletItem.isMultisig = false
+                    })
+                }
+            })
+            return walletItem
+        }
+
+        localKey(wallet, keyObj, mnemonicEnCodeObj) {
             let localData: any[] = []
             let isExist: boolean = false
             try {
@@ -182,18 +233,19 @@ import {NetworkType} from "nem2-sdk";
                 localData = []
             }
             let saveData = {
-                name: walletName,
+                name: wallet.name,
                 ciphertext: keyObj.ciphertext,
                 iv: keyObj.iv,
-                networkType: Number(netType),
-                address: address,
-                balance: balance
+                networkType: wallet.networkType,
+                address: wallet.address,
+                publicKey: wallet.publicKey,
+                mnemonicEnCodeObj: mnemonicEnCodeObj
             }
-            const account = this.$store.state.account.wallet;
-            saveData = Object.assign(saveData, account)
-            this.$store.commit('SET_WALLET', saveData)
+            let account = this.$store.state.account.wallet;
+            account = Object.assign(account, saveData)
+            this.$store.commit('SET_WALLET', account)
             for (let i in localData) {
-                if (localData[i].address === address) {
+                if (localData[i].address === wallet.address) {
                     localData[i] = saveData
                     isExist = true
                 }
@@ -218,5 +270,5 @@ import {NetworkType} from "nem2-sdk";
     }
 </script>
 <style scoped lang="less">
-@import "WalletImportPrivatekey.less";
+  @import "WalletImportPrivatekey.less";
 </style>

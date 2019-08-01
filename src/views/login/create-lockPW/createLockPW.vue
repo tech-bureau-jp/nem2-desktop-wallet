@@ -30,7 +30,7 @@
       </ul>
     </div>
     <div class="buttonDiv clear">
-      <Button @click="jumpToOtherPage('/welcomePage')" class="prev left">{{$t('return_to_the_welcome_page')}}</Button>
+      <Button @click="jumpToOtherPage('/login')" class="prev left">{{$t('return_to_the_welcome_page')}}</Button>
       <Button @click="jumpToOtherPage('/walletPanel')" class="next right">{{$t('next')}}</Button>
     </div>
   </div>
@@ -40,6 +40,7 @@
     import {Component, Vue} from 'vue-property-decorator';
     import {Crypto, UInt64} from 'nem2-sdk'
     import {localSave} from '../../../utils/util'
+    import Message from '@/message/Message'
 
     @Component({
         components: {}
@@ -53,15 +54,15 @@
 
         checkInput () {
             if(!this.lockPW.password || this.lockPW.password === ''){
-                this.$Message.error(this.$t('createLockPWRemind'));
+                this.$Message.error(Message.PASSWORD_CREATE_ERROR);
                 return false
             }
             if(this.lockPW.password !== this.lockPW.checkPW){
-                this.$Message.error(this.$t('createLockCheckPWRemind'));
+                this.$Message.error(Message.INCONSISTENT_PASSWORD_ERROR);
                 return false
             }
             if(!this.lockPW.remindTxt || this.lockPW.remindTxt === ''){
-                this.$Message.error(this.$t('createLockPWTxtRemind'));
+                this.$Message.error(Message.PASSWORD_HIT_SETTING_ERROR);
                 return false
             }
             return true

@@ -49,9 +49,10 @@
 </template>
 
 <script lang="ts">
-    import {Component, Vue} from 'vue-property-decorator';
+    import {Component, Vue, Watch} from 'vue-property-decorator';
     import {createQRCode, copyTxt} from '@/utils/tools'
     import CollectionRecord from '@/components/CollectionRecord.vue'
+    import Message from "@/message/Message";
 
     @Component({
         components: {
@@ -94,11 +95,14 @@
             }
         ]
 
-        accountPrivateKey = ''
         accountPublicKey = ''
         accountAddress = ''
         node = ''
         currentXem = ''
+
+        get getWallet() {
+            return this.$store.state.account.wallet
+        }
 
         hideSetAmountDetail() {
             this.isShowDialog = false
@@ -119,7 +123,7 @@
                 if (codeObj.created) {
                     this.QRCode = codeObj.url
                 } else {
-                    that.$Message.error(that['$t']('QR_code_generation_failed'))
+                    that.$Message.error(Message.QR_GENERATION_ERROR)
                 }
             })
         }
@@ -157,15 +161,14 @@
         copyAddress() {
             const that = this
             copyTxt(this.accountAddress).then(() => {
-                that.$Message.success(that['$t']('successful_copy'))
+                that.$Message.success(Message.COPY_SUCCESS)
             })
         }
 
 
         initData() {
-            this.accountPrivateKey = this.$store.state.account.accountPrivateKey
-            this.accountPublicKey = this.$store.state.account.accountPublicKey
-            this.accountAddress = this.$store.state.account.accountAddress
+            this.accountPublicKey = this.getWallet.publicKey
+            this.accountAddress = this.getWallet.address
             this.node = this.$store.state.account.node
             this.currentXem = this.$store.state.account.currentXem
         }
@@ -176,6 +179,11 @@
             })
         }
 
+        @Watch('getWallet')
+        onGetWalletChange() {
+            this.initData()
+            this.createQRCode()
+        }
 
         created() {
             this.initData()

@@ -55,9 +55,9 @@
         justify-content: space-between;
         align-content: center;
         align-items: center;
-        padding: 20px 22px;
+        padding: 5px 22px;
         border: 1px solid rgba(238, 238, 238, 1);
-        margin: 20px 0;
+        margin: 8px 0;
 
         .descript {
           padding-left: 20px;
@@ -76,7 +76,7 @@
           font-size: 16px;
           font-weight: 400;
           color: rgba(34, 34, 34, 1);
-          line-height: 4px;
+          line-height: 60px;
         }
 
         img {
@@ -126,14 +126,15 @@
           min-width: 16px;
           height: 16px;
           background: rgba(153, 153, 153, 1);
-          font-size:12px;
-          font-weight:400;
+          font-size: 12px;
+          font-weight: 400;
           color: white;
           text-align: center;
           line-height: 16px;
           right: 0px;
           top: 0;
           border-radius: 8px;
+
           span {
             transform: scale(.7);
           }
@@ -182,6 +183,7 @@
     .table_head {
       display: none;
       padding: 2px 0 10px;
+
       span {
         color: #999999;
       }
@@ -261,7 +263,7 @@
           }
 
           .account {
-            padding-left: 70px ;
+            padding-left: 70px;
           }
         }
       }
@@ -314,8 +316,14 @@
   }
 
 }
+
 .no_data {
   text-align: center;
   color: gray;
   margin-top: 100px;
+}
+
+.showUpdate {
+  animation: bounce 1s infinite;
+  -webkit-animation:bounce 1s ; /* Safari 和 Chrome */
 }

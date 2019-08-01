@@ -1,6 +1,12 @@
 <template>
-  <div class="relogin_container radius scroll">
-    <div class="top_slogan">
+  <div class="relogin_container radius scroll" style="position:relative" >
+
+    <div class="video-box" style="position: absolute;">
+      <video autoplay="autoplay" loop="loop" muted="muted" style="width:100%; height:100%; object-fit: contain" >
+        <source src="https://nem.io/wp-content/uploads/2017/08/022255374-flight-over-clouds.mp4" type="video/mp4"></video>
+    </div>
+
+    <div class="top_slogan" style="position: absolute;z-index: 100;">
       <img src="../../../assets/images/login/relogin/reloginNemLogo.png" alt="">
       <span>
         <div class="top">{{$t('welcome_back_to_the_CATAPULT_beta')}}</div>
@@ -8,20 +14,20 @@
       </span>
     </div>
 
-    <div class="middle_icon">
+    <div class="middle_icon" style="position: absolute;z-index: 100; left:50%;transform: translate(-50%, -50%);top:30%">
       <div class="icon_content">
         <div class="icon_item" v-for="i in iconList" @mouseover="changeText($t(i.text))">
           <img :src="i.icon" alt="">
         </div>
       </div>
 
-      <div class="icon_text">
+      <div class="icon_text" style="position: absolute;z-index: 100;left:50%;transform: translate(-50%, -50%);">
         {{currentText}}
       </div>
 
     </div>
 
-    <div class="bottom_login">
+    <div class="bottom_login" style="position: absolute;z-index: 100;left:50%;transform: translate(-50%, -50%);top:60%">
       <div class="bottom_content">
         <div class="top_password">
           <input type="password" v-model="form.password" placeholder="Lock Password">
@@ -31,6 +37,7 @@
       </div>
 
     </div>
+
   </div>
 </template>
 
@@ -46,6 +53,7 @@
     import reloginNamespace from '../../../assets/images/login/relogin/reloginNamespace.png'
     import reloginSend from '../../../assets/images/login/relogin/reloginSend.png'
     import reloginWidgets from '../../../assets/images/login/relogin/reloginWidgets.png'
+    import Message from "@/message/Message";
 
 
     @Component
@@ -80,7 +88,7 @@
                 text: 'use_Changelly_and_ShapeShift_widgets_to_buy_XEM_at_the_best_rates'
             }
         ]
-        currentText = ''
+        currentText:any = ''
 
 
         changeText(text) {
@@ -89,7 +97,7 @@
 
         created() {
             this.$store.state.app.unClick = true
-            this.currentText = this.iconList[0].text
+            this.currentText = this['$t'](this.iconList[0].text)
         }
 
         checkLock(){
@@ -104,22 +112,31 @@
                 }
                 const enTxt = Crypto.decrypt(saveData)
                 if(enTxt !== new UInt64(u).toHex()){
-                    this.$Message.error(this['$t']('password_error'));
+                    this.$Message.error(Message.WRONG_PASSWORD_ERROR);
                     return false
                 }
                 return true
             }catch (e) {
-                this.$Message.error(this['$t']('password_error'));
+                this.$Message.error(Message.WRONG_PASSWORD_ERROR);
                 return false
             }
         }
 
         jumpToDashBoard(){
             if(!this.checkLock()) return
-            this.$store.state.app.unClick = false
-            this.$router.push({
-                name:'dashBoard'
-            })
+            if(this.$store.state.app.walletList.length == 0){
+                this.$router.push({
+                    name:'walletPanel',
+                    params:{
+                        create: 'true'
+                    }
+                })
+            }else {
+                this.$store.state.app.isInLoginPage = false
+                this.$router.push({
+                    name:'dashBoard'
+                })
+            }
         }
     }
 </script>

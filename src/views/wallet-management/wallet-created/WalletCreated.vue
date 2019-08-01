@@ -78,8 +78,10 @@
     import './WalletCreated.less'
     import {NetworkType, UInt64, Crypto} from "nem2-sdk";
     import {MnemonicPassPhrase, ExtendedKey, Wallet} from 'nem2-hd-wallets';
-    import {localRead, localSave} from '../../../utils/util'
+    import {localRead, localSave} from '../../../utils/util';
+    import {strToHexCharCode} from '../../../utils/tools';
     import {walletInterface} from "../../../interface/sdkWallet";
+    import Message from "@/message/Message";
 
     @Component({
         components: {},
@@ -180,9 +182,9 @@
             }
             if (JSON.stringify(childWord) != JSON.stringify(this.mnemonic)) {
                 if (childWord.length < 1) {
-                    this.$Message.warning(this['$t']('Please_enter_a_mnemonic_to_ensure_that_the_mnemonic_is_correct'));
+                    this.$Message.warning(Message.PLEASE_ENTER_MNEMONIC_INFO);
                 } else {
-                    this.$Message.warning(this['$t']('Mnemonic_inconsistency'));
+                    this.$Message.warning(Message.MNEMONIC_INCONSISTENCY_ERROR);
                 }
                 return false
             }
@@ -256,6 +258,8 @@
 
         setUserDefault  (name, account, netType) {
             const that = this
+            const walletList = this.$store.state.app.walletList
+            const style = 'walletItem_bg_' + walletList.length % 3
             walletInterface.getWallet({
                 name: name,
                 networkType: netType,
@@ -271,17 +275,18 @@
                     mosaics: [],
                     wallet: Wallet.result.wallet,
                     password: Wallet.result.password,
-                    mnemonic: this.mnemonic.join(' '),
-                    balance: 0
+                    balance: 0,
+                    style
                 }
                 this.storeWallet = storeWallet
                 that.$store.commit('SET_WALLET', storeWallet)
                 const encryptObj = Crypto.encrypt(Wallet.result.privateKey, that.formInfo['password'])
-                that.localKey(name, encryptObj, Wallet.result.wallet.address.address)
+                const mnemonicEnCodeObj = Crypto.encrypt(strToHexCharCode(this.mnemonic.join(' ')), that.formInfo['password'])
+                that.localKey(storeWallet, encryptObj, mnemonicEnCodeObj)
             })
         }
 
-        localKey (walletName, keyObj, address, balance = 0) {
+        localKey (wallet, keyObj, mnemonicEnCodeObj) {
             let localData: any[] = []
             let isExist: boolean = false
             try {
@@ -290,17 +295,19 @@
                 localData = []
             }
             let saveData = {
-                name: walletName,
+                name: wallet.name,
                 ciphertext: keyObj.ciphertext,
                 iv: keyObj.iv,
-                networkType: Number(this.formInfo['currentNetType']),
-                address: address,
-                balance: balance
+                networkType: wallet.networkType,
+                address: wallet.address,
+                publicKey: wallet.publicKey,
+                mnemonicEnCodeObj:mnemonicEnCodeObj
             }
-            saveData = Object.assign(saveData, this.storeWallet)
-            this.$store.commit('SET_WALLET', saveData)
+            let account = this.$store.state.account.wallet;
+            account = Object.assign(account, saveData)
+            this.$store.commit('SET_WALLET', account)
             for (let i in localData) {
-                if (localData[i].address === address) {
+                if (localData[i].address === wallet.address) {
                     localData[i] = saveData
                     isExist = true
                 }
