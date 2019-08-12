@@ -1,8 +1,30 @@
 import {
-    Address, AliasActionType, Deadline, MosaicId, NamespaceId, NamespaceType,
-    NetworkType, UInt64, Password, SimpleWallet, PublicAccount, Account, AccountInfo,
-    Transaction, SignedTransaction, MultisigAccountInfo, MultisigAccountGraphInfo,Listener
+    Address,
+    AliasActionType,
+    Deadline,
+    MosaicId,
+    NamespaceId,
+    NamespaceType,
+    NetworkType,
+    UInt64,
+    Password,
+    SimpleWallet,
+    PublicAccount,
+    Account,
+    AccountInfo,
+    Transaction,
+    SignedTransaction,
+    MultisigAccountInfo,
+    MultisigAccountGraphInfo,
+    Listener,
+    MultisigCosignatoryModification,
+    MosaicSupplyChangeTransaction,
+    AggregateTransaction,
+    AccountPropertyTransaction,
+    PropertyType,
+    ModifyAccountPropertyAddressTransaction
 } from 'nem2-sdk'
+
 
 declare namespace SdkV0 {
 
@@ -67,10 +89,9 @@ declare namespace SdkV0 {
         }>;
 
         sign: (params: {
-            wallet: SimpleWallet,
+            account: Account,
             transaction: Transaction,
-            generationHash: any,
-            password: Password
+            generationHash: any
         }) => Rst<{
             signature: SignedTransaction
         }>;
@@ -143,6 +164,24 @@ declare namespace SdkV0 {
             node: string
         }) => Rst<{
             announceStatus: any
+        }>;
+        _announce: (params: {
+            transaction: Transaction,
+            node: string,
+            account: Account,
+            generationHash: string
+
+        }) => Rst<{
+            announceStatus: any
+        }>;
+        // todo after sdk updated
+        accountAddressRestrictionModificationTransaction: (params: {
+            propertyType: PropertyType,
+            accountPropertyTransaction: any,
+            networkType: NetworkType,
+            fee: number,
+        }) => Rst<{
+            modifyAccountPropertyAddressTransaction: ModifyAccountPropertyAddressTransaction
         }>;
         transferTransaction: (params: {
             network: number,
@@ -220,6 +259,18 @@ declare namespace SdkV0 {
         }) => Rst<{
             aggregateBondedTx: any
         }>;
+        announceBondedWithLock: (params: {
+            aggregateTransaction: AggregateTransaction,
+            account: Account,
+            listener: Listener,
+            node: string,
+            generationHash: string,
+            networkType,
+            fee
+        }) => Rst<{
+            aggregateBondedTx: any
+        }>;
+
     }
 
     interface mosaic {
@@ -247,7 +298,7 @@ declare namespace SdkV0 {
             supplyMutable: boolean,
             transferable: boolean,
             divisibility: number,
-            duration: number,
+            duration: number | undefined,
             netWorkType: number,
             supply: number,
             publicAccount: PublicAccount,
@@ -262,7 +313,7 @@ declare namespace SdkV0 {
             netWorkType: number,
             maxFee?: number
         }) => Rst<{
-            mosaicSupplyChangeTransaction: object
+            mosaicSupplyChangeTransaction: MosaicSupplyChangeTransaction
         }>;
         getMosaics: (params: {
             node: string,
@@ -292,7 +343,7 @@ declare namespace SdkV0 {
         createNamespaceId: (params: {
             name: string | number[]
         }) => Rst<{
-            namespaceId: NamespaceId
+            namespacetransactionId: NamespaceId
         }>;
         createdRootNamespace: (params: {
             namespaceName: string,
@@ -300,16 +351,7 @@ declare namespace SdkV0 {
             networkType: NetworkType,
             maxFee?: number
         }) => Rst<{
-            rootNamespaceTransaction: {
-                networkType: NetworkType,
-                version: number,
-                deadline: Deadline,
-                maxFee: UInt64,
-                namespaceType: NamespaceType,
-                namespaceName: string,
-                namespaceId: NamespaceId,
-                duration: UInt64 | undefined
-            }
+            rootNamespaceTransaction:Transaction
         }>;
         createdSubNamespace: (params: {
             namespaceName: string,
@@ -317,15 +359,7 @@ declare namespace SdkV0 {
             networkType: NetworkType,
             maxFee?: number
         }) => Rst<{
-            subNamespaceTransaction: {
-                networkType: NetworkType,
-                version: number,
-                deadline: Deadline,
-                maxFee: UInt64,
-                namespaceType: NamespaceType,
-                namespaceName: string,
-                namespaceId: NamespaceId
-            }
+            subNamespaceTransaction: Transaction
         }>;
         mosaicAliasTransaction: (params: {
             actionType: AliasActionType,
@@ -334,21 +368,14 @@ declare namespace SdkV0 {
             networkType: NetworkType,
             maxFee?: number
         }) => Rst<{
-            aliasMosaicTransaction: {
-                networkType: NetworkType,
-                version: number,
-                deadline: Deadline,
-                maxFee: UInt64,
-                actionType: AliasActionType,
-                namespaceId: NamespaceId,
-                mosaicId: MosaicId
-            }
+            aliasMosaicTransaction: any
         }>;
         addressAliasTransaction: (params: {
             actionType: AliasActionType,
             namespaceId: NamespaceId,
             address: Address,
             networkType: NetworkType,
+
             maxFee?: number
         }) => Rst<{
             aliasAddressTransaction: {
@@ -384,6 +411,27 @@ declare namespace SdkV0 {
         }) => Rst<{
             ws: any
         }>;
+        listenerUnconfirmed: (params: {
+            listener: any
+            address: Address
+            fn: any
+        }) => Rst<{
+            ws: any
+        }>;
+        listenerConfirmed: (params: {
+            listener: any
+            address: Address
+            fn: any
+        }) => Rst<{
+            ws: any
+        }>;
+        listenerTxStatus: (params: {
+            listener: any
+            address: Address
+            fn: any
+        }) => Rst<{
+            ws: any
+        }>;
         sendMultisigWs: (params: {
             address: Address,
             account: any,
@@ -397,7 +445,7 @@ declare namespace SdkV0 {
         newBlock: (
             params: {
                 listener: Listener,
-                pointer:any
+                pointer: any
             }
         ) => Rst<{
             blockInfo: any
@@ -405,24 +453,29 @@ declare namespace SdkV0 {
     }
 
     interface multisig {
+        getMultisigAccountInfo: (params: {
+            address: string
+            node: string
+        }) => Rst<{
+            multisigInfo: any
+        }>;
+        completeMultisigTransaction: (params: {
+            networkType: NetworkType,
+            fee: number,
+            multisigPublickey: string,
+            transaction: Array<Transaction>,
+        }) => Rst<{
+            aggregateTransaction: AggregateTransaction
+        }>;
+        bondedMultisigTransaction: (params: {
+            networkType: NetworkType,
+            account: Account,
+            fee: number,
+            multisigPublickey: string,
+            transaction: Array<Transaction>,
+        }) => Rst<{
+            aggregateTransaction: AggregateTransaction
+        }>;
     }
-
-    //   wsIsOpen:(params:{
-    //     webSocket:any
-    //   })=>Rst<{
-    //     wsIsOpen:boolean
-    //   }>
-    //   wsClose:(params:{
-    //     webSocket:any
-    //   })=>Rst<{
-    //     wsClose:boolean
-    //   }>
-    //   wsUnconfirmedRemoved:(params:{
-    //     webSocket:any,
-    //     address:Address
-    //   })=>Rst<{
-    //     Observable:any
-    //   }>
-    // }
 }
 

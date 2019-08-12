@@ -3,23 +3,20 @@
   background-color: white;
   position: absolute;
   top: 75px;
-  width: 700px;
+  width: 1765px;
   padding-left: 20px;
-
   .fake_content {
     position: absolute;
-    width: 1780px;
+    width: 1765px;
     height: 60px;
     background-color: white;
     border-radius: 4px;
-    //z-index: 9999;
     top: -75px;
-    left: 0px;
+    left: 0;
   }
 
   .top_button {
     height: 120px;
-    width: 630px;
     z-index: 9999;
     position: absolute;
 
@@ -31,6 +28,7 @@
       border: 1px solid rgba(153, 153, 153, 1);
       display: inline-block;
       line-height: 44px;
+      font-size: 20px;
       text-align: center;
       margin-left: 40px;
       margin-top: 70px;
@@ -82,7 +80,7 @@
 
       .article_summary_item {
         margin-left: 40px;
-        padding: 15px 32px;
+        padding: 25px 32px;
         margin-bottom: 15px;
         width: 580px;
         height: 140px;
@@ -93,7 +91,7 @@
         color: #333;
 
         .title {
-          font-size: 24px;
+          font-size: 22px;
           font-weight: 500;
           line-height: 30px;
           display: inline-block;
@@ -106,11 +104,13 @@
           overflow: hidden;
 
         }
+
         .other_info {
           margin-top: 10px;
-          font-size: 20px;
+          font-size: 12px;
           font-weight: 400;
           color: #999999;
+
           .tag {
             color: #20B5AC;
           }
@@ -123,11 +123,13 @@
             margin-left: 30px;
           }
         }
+
         .article_summary_item:hover {
-          box-shadow: 0px 0px 10px rgba(32, 181, 172, 0.2);
+          box-shadow: 0 0 10px rgba(32, 181, 172, 0.2);
         }
 
       }
+
       .selected {
         background: rgba(38, 180, 176, 1);
         color: white;
@@ -140,6 +142,7 @@
         .other_info {
           color: white;
         }
+
         .time_tag {
           margin-left: 30px;
           color: #FFE18B;
@@ -179,14 +182,14 @@
       .click_to_vote {
         width: 200px;
         height: 60px;
-        //background: rgba(32, 181, 172, 1);
         border-radius: 30px;
         line-height: 60px;
         text-align: center;
+        //background: rgba(32, 181, 172, 1);
         //color: white;
         background-color: #ccc;
         color: #999;
-        margin: 100px  auto 0 auto;
+        margin: 0 auto 0 auto;
       }
 
       .initor {
@@ -196,7 +199,7 @@
       }
 
       .title {
-        font-size: 30px;
+        font-size: 24px;
         font-weight: bold;
         color: #333333;
         line-height: 36px;
@@ -206,8 +209,9 @@
       .letter_spacing {
         color: #999999;
       }
+
       .date {
-        font-size: 24px;
+        font-size: 16px;
         font-weight: 400;
         line-height: 30px;
         margin-top: 20px;
@@ -218,7 +222,7 @@
         font-weight: 400;
         color: #666666;
         line-height: 30px;
-        margin-top:50px;
+        margin-top: 50px;
       }
 
       .selection {
@@ -251,17 +255,19 @@
   }
 
   .create_vote {
-    height: 100%;
+    height: calc(100% + 30px);
     box-sizing: border-box;
     width: 1760px;
     background-color: white;
     position: absolute;
-    top: 0;
+    top: -30px;
+    left: 0;
+    overflow: hidden;
 
     .vote_creating_content {
       width: 1090px;
       position: absolute;
-      top: 124px;
+      top: 184px;
       left: 400px;
 
 
@@ -285,10 +291,10 @@
     }
 
     .value {
-      padding: 18px 20px 18px 40px;
+      padding: 10px 20px 18px 20px;
       display: inline-block;
       width: 950px;
-      height: 60px;
+      height: 45px;
       border: 1px solid rgba(204, 204, 204, 1);
       overflow: hidden;
 
@@ -367,7 +373,7 @@
 
 
       .value {
-        padding: 20px 40px;
+        padding: 20px 20px;
         width: 950px;
         height: 120px;
       }
@@ -378,6 +384,12 @@
         position: relative;
         top: 15px;
       }
+
+      input {
+        position: relative;
+        top: 5px;
+      }
+
       .list_cloumn {
         width: 950px;
         display: flex;
@@ -393,11 +405,16 @@
           display: flex;
           align-items: center;
         }
+
         .button_content {
           width: 100px;
           display: flex;
           align-items: center;
           justify-content: center;
+          .alone{
+            position: relative;
+            right: -23px;
+          }
         }
 
       }
@@ -433,7 +450,6 @@
     .create_button {
       width: 200px;
       height: 60px;
-      //background: rgba(32, 181, 172, 1);
       background-color: #ccc;
       color: #999999;
       cursor: not-allowed;
@@ -441,6 +457,7 @@
       margin: 100px auto;
       font-size: 16px;
       font-weight: 400;
+      //background: rgba(32, 181, 172, 1);
       //color: rgba(255, 255, 255, 1);
       text-align: center;
       line-height: 60px;
@@ -466,9 +483,12 @@ textarea::placeholder {
 .orange {
   color: #E58A1E;
 }
-.yellow {
-    color: #FFE18B;
-}
-.gray {
 
+.yellow {
+  color: #FFE18B;
+}
+
+.noData {
+  position: absolute;
+  top: 400px;
 }

@@ -3,11 +3,11 @@
     <div class="bottom_table">
       <div class="table_main_head">
         <span>
-          <img src="../../../../../assets/images/service/apostille/apostilleDowload.png" alt="">
+          <img src="@/common/img/service/apostille/apostilleDowload.png" alt="">
           {{$t('Notarized_data_backup')}}
         </span>
         <span>
-          <img src="../../../../../assets/images/service/apostille/apostilleDelete.png" alt="">{{$t('Notarized_data_backup')}}
+          <img src="@/common/img/service/apostille/apostilleDelete.png" alt="">{{$t('Notarized_data_backup')}}
         </span>
       </div>
 
@@ -20,8 +20,16 @@
           <span class="result">{{$t('date')}}</span>
         </div>
 
+
+        <div v-if="transationList.length == 0" class="noData" >
+          <i><img src="@/common/img/wallet/no_data.png"></i>
+          <p>{{$t('not_yet_open')}}</p>
+        </div>
+
+
+
         <div class="table_item_list scroll">
-          <div class="table_item" v-for="i in 7">
+          <div class="table_item" v-for="i in transationList">
             <span class="file_name">index.txt</span>
             <span class="owner">tag</span>
             <span class="hash">fe4e54598370789440e2fffc688c1dd92e254dd9e1f56594f02160dd3b13d40cb3fec81f04639525db23c034770f5509ec35a83f6e84c8f930bbf63ed327b506449dfadb02</span>
@@ -41,7 +49,7 @@
     @Component
     export default class ApostilleHistory extends Vue {
 
-
+        transationList = []
     }
 </script>
 <style scoped lang="less">

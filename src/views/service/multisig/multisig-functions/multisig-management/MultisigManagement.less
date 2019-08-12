@@ -89,7 +89,7 @@
             height: 45px;
             background: rgba(98, 222, 214, 1);
             border-radius: 0px 4px 4px 0px;
-            background-image: url("../../../../../assets/images/service/multisig/multisigCosigner.png");
+            background-image: url("../../../../../common/img/service/multisig/multisigCosigner.png");
             background-repeat: no-repeat;
             background-position: center;
             background-size: 26px 21px;
@@ -109,6 +109,9 @@
           border-bottom: 1px solid #eee;
           padding: 10px 20px;
           color: #999;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
         }
 
         .sub_list_item:hover {
@@ -132,6 +135,10 @@
 
         input {
           border: 1px solid rgba(204, 204, 204, 1);
+        }
+
+        .xem_amount {
+          margin-left: 10px;
         }
       }
 
@@ -214,15 +221,24 @@
 .send_button {
   width: 160px;
   height: 50px;
+  color: white;
   background: rgba(32, 181, 172, 1);
   border-radius: 25px;
-  color: white;
+  font-size: 16px;
   text-align: center;
   line-height: 50px;
-  margin: 40px 0 0 300px;
+  margin: 40px 0 30px 300px;
 }
 
 .xem_container {
   position: relative;
   right: 50px;
+}
+.no_multisign {
+  width: auto;
+  height: 50px;
+  color: #999;
+  text-align: center;
+  line-height: 50px;
+  margin: 40px 0 0 0;
 }

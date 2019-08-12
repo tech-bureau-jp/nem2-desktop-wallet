@@ -1,5 +1,5 @@
-import {AccountHttp, Address, EncryptedMessage} from 'nem2-sdk'
 import {SdkV0} from "./sdkDefine";
+import {AccountHttp, Address, EncryptedMessage} from 'nem2-sdk'
 
 export const accountInterface: SdkV0.account = {
     getAccountsNames: async (params) => {
@@ -25,9 +25,9 @@ export const accountInterface: SdkV0.account = {
     },
 
     sign: async (params) => {
-        const wallet = params.wallet
+        const account = params.account
         const transaction = params.transaction
-        const signature = await wallet.open(params.password).sign(transaction, params.generationHash)
+        const signature = await account.sign(transaction, params.generationHash)
         return {
             result: {
                 signature: signature
@@ -42,7 +42,7 @@ export const accountInterface: SdkV0.account = {
         try {
             multisigAccountInfo = await new AccountHttp(node).getMultisigAccountInfo(address)
         } catch (e) {
-            multisigAccountInfo = 'no multisig'
+            console.log(e)
         }
 
         return {

@@ -3,8 +3,8 @@
     <div class="left left_article_list radius">
 
       <Spin v-if="isLoadingConfirmedTx" size="large" fix class="absolute"></Spin>
-      <div v-if="isLoadingConfirmedTx" style="background-color: white;width: 100%;height: 100%;position: absolute;z-index: 0"></div>
-
+      <div v-if="isLoadingConfirmedTx"
+           style="background-color: white;width: 100%;height: 100%;position: absolute;z-index: 0"></div>
 
 
       <div class="list_container scroll" ref="listContainer" @scroll="automaticLoadingArticla">
@@ -12,7 +12,6 @@
              :class="['article_summary_item',a.isSelect?'selected':'','pointer']">
           <div class="title">{{a.title}}
           </div>
-          <!--          <div class="summary overflow_ellipsis">{{a.summary}}</div>-->
           <div class="other_info">
             <span class="tag">{{$t('business')}}</span>
             <span class="from">{{a.author}}</span>
@@ -26,8 +25,9 @@
     <div class="right_article_detail right radius">
       <div class="article_container " ref="articleContainer" @scroll="automaticLoadingComment">
 
-        <Spin v-if="isLoadingConfirmedTx" size="large" fix class="absolute"></Spin>
-        <div  v-if="isLoadingConfirmedTx" style="background-color: white;width: 100%;height: 100%;position: absolute;z-index: 1"></div>
+        <Spin v-if="isLoadingConfirmedTx" size="large" fix class="absolute spin"></Spin>
+        <div v-if="isLoadingConfirmedTx"
+             style="background-color: white;width: 90%;height: 500px;position: absolute;z-index: 1"></div>
 
         <div class="title content article_title">
           {{currentArticle.title}}
@@ -56,7 +56,7 @@
               <span class="textarea_text">{{$t('remaining')}}：{{remainingWords}} {{$t('word')}}</span>
             </div>
 
-            <div @click="sendComment" class="send_comment pointer">
+            <div @click="checkForm" class="send_comment pointer">
               {{$t('publish')}}
             </div>
 
@@ -66,7 +66,8 @@
                 <div class="comment_content">{{c.comment}}</div>
                 <div class="comment_time">{{c.gtmCreate}}</div>
               </div>
-              <div class="load_all_data" v-if="loadAllCommentData && commentList.length !== 0">{{$t('no_more_data')}}
+              <div class="load_all_data" v-if="loadAllCommentData && commentList.length !== 0">
+                {{$t('no_more_data')}}
               </div>
               <div class="load_all_data" v-if="commentList.length === 0">{{$t('no_comment_yet')}}</div>
             </div>
@@ -80,11 +81,11 @@
 </template>
 
 <script lang="ts">
+    import {Message} from "config/index"
+    import {formatDate} from '@/help/help.ts'
+    import {blog} from "@/interface/restLogic"
     import {Component, Vue, Watch} from 'vue-property-decorator'
-    import axios from 'axios'
-    import {formatDate} from '../../../utils/util.js'
-    import CheckPWDialog from '../../../components/checkPW-dialog/CheckPWDialog.vue'
-    import Message from "@/message/Message";
+    import CheckPWDialog from '@/common/vue/check-password-dialog/CheckPasswordDialog.vue'
 
     @Component({
         components: {
@@ -92,29 +93,30 @@
         }
     })
     export default class information extends Vue {
-        isLoadingConfirmedTx = true
-        showCheckPWDialog = false
+        startPage = 0
         articleList = []
+        commentList = []
+        totalComment = 0
+        commentContent = ''
+        loadAllData = false
+        remainingWords = 300
+        commentStartPage = 0
+        showCheckPWDialog = false
+        loadAllCommentData = false
+        isLoadingConfirmedTx = true
         currentArticle: any = {
             title: 'null',
             content: 'null'
         }
-        totalComment = 0
-        commentContent = ''
-        startPage = 0
-        commentStartPage = 0
-        loadAllData = false
-        commentList = []
-        remainingWords = 300
-        loadAllCommentData = false
-
 
         closeCheckPWDialog() {
             this.showCheckPWDialog = false
         }
 
         checkEnd(flag) {
-            console.log(flag)
+            if (flag) {
+                this.sendComment()
+            }
         }
 
         addArticleStartIndex() {
@@ -123,6 +125,10 @@
 
         addCommentStartIndex() {
             this.commentStartPage += 10
+        }
+
+        formatDate(timestamp) {
+            return formatDate(timestamp)
         }
 
         switchArticle(index) {
@@ -136,42 +142,37 @@
             this.articleList = list
         }
 
-        async sendComment() {
+        checkForm() {
+            const {commentContent} = this
+            if (!commentContent || commentContent.trim() == '') {
+                this.$Notice.error({
+                    title: '' + this.$t(Message.INPUT_EMPTY_ERROR)
+                })
+                return false
+            }
             this.showCheckPWDialog = true
+        }
 
+        async sendComment() {
             const that = this
             const comment = this.commentContent
             const cid = this.currentArticle.cid
-            const address = this.$store.state.account.address
-            const nickName = this.$store.state.account.name
+            const address = this.$store.state.account.wallet.address
+            const nickName = this.$store.state.account.wallet.name
             const gtmCreate = new Date()
-
-            const url = `${this.$store.state.app.apiUrl}/rest/blog/comment/save?cid=${cid}&comment=${comment}&address=${address}&nickName=${nickName}&gtmCreate=${gtmCreate}`
-            await axios.get(url).then(function (response) {
-                console.log(response)
-                that.$Notice.success({
-                    title: 'success',
-                    desc: 'success',
-                    render: h => {
-                        // @ts-ignore
-                        return h('span', [Message.OPERATION_SUCCESS])
-                    }
+            try {
+                await blog.commentSave({
+                    cid: cid,
+                    comment: comment,
+                    address: address,
+                    nickName: nickName,
+                    gtmCreate: gtmCreate.toDateString()
                 });
-            }).catch(() => {
-                that.$Notice.error({
-                    title: 'failure',
-                    desc: 'failure',
-                    render: h => {
-                        // @ts-ignore
-                        return h('span', [Message.OPERATION_FAILED_ERROR])
-                    }
-                });
-            })
+                that.$Notice.success({title: that.$t(Message.SUCCESS) + ''});
+            } catch (e) {
+                that.$Notice.error({title: that.$t(Message.OPERATION_FAILED_ERROR) + ''});
+            }
             this.onCurrentArticleChange()
-        }
-
-        formatDate(timestamp) {
-            return formatDate(timestamp)
         }
 
         switchLanguege() {
@@ -207,25 +208,30 @@
 
         async getArticleByPage() {
             if (this.loadAllData) {
-            return
-          }
+                return
+            }
             const languageNumber = this.switchLanguege()
             const that = this
             const {startPage} = this
-            const url = `${this.$store.state.app.apiUrl}/rest/blog/list?limit=10&offset=${startPage}&language=${languageNumber}`
-            await axios.get(url).then(function (response) {
-                let articleList = that.articleList.concat(response.data.rows)
-                articleList.map((item) => {
-                    item.summary = item.title
-                    return item
-                })
-                that.articleList = articleList
-                if (response.data.total <= that.articleList.length) {
-                    that.loadAllData = true
-                }
+            const rstStr = await blog.list({
+                offset: startPage.toString(),
+                limit: "10",
+                language: languageNumber.toString()
+            });
+            const rstQuery = JSON.parse(rstStr.rst);
+
+            let articleList = that.articleList.concat(rstQuery.rows)
+            articleList.map((item) => {
+                item.summary = item.title
+                return item
             })
+            that.articleList = articleList
+            if (rstQuery.total <= that.articleList.length) {
+                that.loadAllData = true
+            }
             this.isLoadingConfirmedTx = false
             this.addArticleStartIndex()
+            this.articleList[0].isSelect = true
         }
 
         async getCommentByPage() {
@@ -235,14 +241,13 @@
             const that = this
             const cid = this.currentArticle.cid
             const offset = this.commentStartPage
-            const url = `${this.$store.state.app.apiUrl}/rest/blog/comment/list?cid=${cid}&limit=10&offset=${offset}`
-            await axios.get(url).then(function (response) {
-                that.commentList.push(...response.data.rows)
-                that.totalComment = response.data.total
-                if (response.data.total <= that.commentList.length) {
-                    that.loadAllCommentData = true
-                }
-            })
+            const rstStr = await blog.commentList({cid: cid, limit: "10", offset: offset.toString()});
+            const rstQuery = JSON.parse(rstStr.rst);
+            that.commentList.push(...rstQuery.rows)
+            that.totalComment = rstQuery.total
+            if (rstQuery.total <= that.commentList.length) {
+                that.loadAllCommentData = true
+            }
             this.addCommentStartIndex()
         }
 

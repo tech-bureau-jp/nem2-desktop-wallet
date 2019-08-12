@@ -5,16 +5,17 @@
 </template>
 
 <script lang="ts">
-    import {Component, Vue} from 'vue-property-decorator';
-    import {localRead} from './utils/util'
-    import {accountInterface} from './interface/sdkAccount';
-    import {wsInterface} from './interface/sdkListener'
-    import {PublicAccount, Listener} from "nem2-sdk";
     import 'animate.css'
+    import fs from 'fs'
+    import {localRead} from '@/help/help'
+    import {PublicAccount, Listener} from "nem2-sdk"
+    import {wsInterface} from '@/interface/sdkListener'
+    import {Component, Vue} from 'vue-property-decorator'
+    import {accountInterface} from '@/interface/sdkAccount'
 
     @Component
     export default class App extends Vue {
-        node: any;
+        node: any
 
         async initApp() {
             let walletList: any = localRead('wallets') ? JSON.parse(localRead('wallets')) : []
@@ -33,16 +34,9 @@
             this.$store.state.account.wallet = walletList[0]
             this.$store.state.app.walletList = walletList
             this.$store.state.app.isInLoginPage = true
-
-            if (!localRead('lock')) {
-                this.$router.push({
-                    name: 'login'
-                })
-            } else {
-                this.$router.push({
-                    name: 'reLogin'
-                })
-            }
+            this.$router.push({
+                name: 'login'
+            })
         }
 
         async getAccountInfo(listItem) {
@@ -82,7 +76,6 @@
                     multisigAccountInfo.result.multisigAccountInfo['subscribe']((accountInfo) => {
                         walletItem.isMultisig = true
                     }, () => {
-                        console.log('not multisigAccount')
                         walletItem.isMultisig = false
                     })
                 }
@@ -92,20 +85,29 @@
 
         initData() {
             this.node = this.$store.state.account.node
+            this.$Notice.config({
+                duration: 3
+            });
         }
 
-
         chainListner() {
-            const {node} = this
-            // todo
-            const listener = new Listener('ws://192.168.0.105:3000', WebSocket)
+            const node = this.node.replace('http', 'ws')
+            const listener = new Listener(node, WebSocket)
             wsInterface.newBlock({
                 listener,
                 pointer: this
             })
         }
-
+        checkInstall () {
+            if(fs.readdirSync){
+                const root = fs.readdirSync('./')
+                console.log(root)
+            }else {
+                console.log('web')
+            }
+        }
         created() {
+            this.checkInstall()
             this.initData()
             this.initApp()
             this.chainListner()
@@ -114,6 +116,6 @@
 </script>
 
 <style lang="less">
-  @import "./assets/css/common.less";
-  @import "./assets/css/iview.less";
+  @import "./common/css/common.less";
+  @import "./common/css/iview.less";
 </style>

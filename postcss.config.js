@@ -4,8 +4,10 @@ module.exports = {
       "autoprefixer": {},
       "postcss-pxtorem": {
           "rootValue": 100,
+          // "propList": ["*",'!font-size'],
           "propList": ["*"],
-          "selectorBlackList": ["mint-"]
+          "selectorBlackList": ["mint-"],
+          // "minPixelValue": 15
       }
   }
 }

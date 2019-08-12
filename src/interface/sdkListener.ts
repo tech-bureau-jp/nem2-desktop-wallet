@@ -1,18 +1,81 @@
-import {Listener, TransactionHttp} from 'nem2-sdk'
 import {SdkV0} from './sdkDefine'
-// @ts-ignore
 import {filter, mergeMap} from 'rxjs/operators'
+import {Listener, TransactionHttp} from 'nem2-sdk'
 
 export const wsInterface: SdkV0.ws = {
     openWs: async (params) => {
-        const Observable = params.listener.open();
+        const Observable = params.listener.open().catch((e) => {
+            console.log(e)
+        });
         return {
             result: {
                 ws: Observable
             }
         }
     },
-
+    listenerUnconfirmed: async (params) => {
+        const listener = params.listener;
+        listener.open().then(() => {
+            listener
+                .unconfirmedAdded(params.address)
+                .pipe(
+                    filter((transaction: any) => transaction.transactionInfo !== undefined)
+                )
+                .subscribe(transactionInfo => {
+                    params.fn(transactionInfo)
+                })
+        }, err => {
+            console.log(err)
+        }).catch((e) => {
+            console.log(e)
+        })
+        return {
+            result: {
+                ws: 'Ok'
+            }
+        }
+    },
+    listenerConfirmed: async (params) => {
+        const listener = params.listener;
+        listener.open().then(() => {
+            listener
+                .confirmed(params.address)
+                .pipe(
+                    filter((transaction: any) => transaction.transactionInfo !== undefined)
+                )
+                .subscribe(transactionInfo => {
+                    params.fn(transactionInfo)
+                })
+        }, err => {
+            console.log(err)
+        }).catch((e) => {
+            console.log(e)
+        })
+        return {
+            result: {
+                ws: 'Ok'
+            }
+        }
+    },
+    listenerTxStatus: async (params) => {
+        const listener = params.listener;
+        listener.open().then(() => {
+            listener
+                .status(params.address)
+                .subscribe(transactionInfo => {
+                    params.fn(transactionInfo)
+                })
+        }, err => {
+            console.log(err)
+        }).catch((e) => {
+            console.log(e)
+        })
+        return {
+            result: {
+                ws: 'Ok'
+            }
+        }
+    },
     sendMultisigWs: async (params) => {
         const listener = params.listener
         const transactionHttp = new TransactionHttp(params.node)
@@ -29,6 +92,8 @@ export const wsInterface: SdkV0.ws = {
                 .subscribe(announcedAggregateBonded => {
                     },
                     err => console.error(err))
+        }).catch((e) => {
+            console.log(e)
         })
         return {
             result: {
@@ -66,6 +131,8 @@ export const wsInterface: SdkV0.ws = {
                         console.log(err)
                     }
                 );
+        }).catch((e) => {
+            console.log(e)
         })
 
         return {

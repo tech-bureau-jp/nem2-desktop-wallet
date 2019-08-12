@@ -16,6 +16,7 @@
         </div>
       </div>
     </Modal>
+
     <div class="top_network_info">
       <div class="left_echart radius">
         <span class="trend">{{$t('XEM_market_trend_nearly_7_days')}}</span>
@@ -28,31 +29,32 @@
       <div class="right_net_status radius">
         <div class="panel_name">{{$t('network_status')}}</div>
 
-
-        <div class="network_item radius" v-for="n in networkStatusList">
+        <div class="network_item radius" v-for="(n,index) in networkStatusList">
           <img :src="n.icon" alt="">
           <span class="descript">{{$t(n.descript)}}</span>
-          <span :class="['data','overflow_ellipsis', updateAnimation]" >{{$store.state.app.chainStatus[n.variable]}}</span>
+          <span :class="['data','overflow_ellipsis', updateAnimation]">
+            <numberGrow v-if="index !== 4" :value="$store.state.app.chainStatus[n.variable]"></numberGrow>
+            <span v-else>...{{$store.state.app.chainStatus[n.variable].substr(-5,5)}}</span>
+          </span>
         </div>
       </div>
     </div>
 
     <div class="bottom_transactions radius scroll" ref="bottomTransactions">
-
+      <div class="splite_page">
+        <span>{{$t('total')}}：{{currentDataAmount}} {{$t('data')}}</span>
+        <Page @on-change="changePage" :total="currentDataAmount" class="page_content"/>
+      </div>
 
       <div class="label_page">
         <span @click="switchTransactionPanel(true)"
-              :class="['pointer',showConfirmedTransactions?'selected':'','page_title']">{{$t('confirmed_transaction')}}
-          <span class="transacrion_num">
-            <span>{{confirmedDataAmount}}</span>
-          </span>
+              :class="['pointer',showConfirmedTransactions?'selected':'','page_title']">
+          {{$t('confirmed_transaction')}} ({{confirmedDataAmount}})
         </span>
         <span class="line">|</span>
         <span @click="switchTransactionPanel(false)"
-              :class="['pointer',showConfirmedTransactions?'':'selected','page_title']">{{$t('unconfirmed_transaction')}}
-          <span class="transacrion_num">
-            <span>{{unconfirmedDataAmount}}</span>
-          </span>
+              :class="['pointer',showConfirmedTransactions?'':'selected','page_title']">
+          {{$t('unconfirmed_transaction')}} ({{unconfirmedDataAmount}})
         </span>
       </div>
 
@@ -66,13 +68,18 @@
         <div class="confirmed_transactions" v-if="showConfirmedTransactions">
           <Spin v-if="isLoadingConfirmedTx" size="large" fix class="absolute"></Spin>
           <div class="table_body hide_scroll" ref="confirmedTableBody">
-            <div class="table_item pointer" @click="showDialog(c)" v-for="c in confirmedTransactionList">
-              <img class="mosaic_action" src="../../../assets/images/monitor/dash-board/dashboardMosaicIn.png" alt="">
+            <div class="table_item pointer" @click="showDialog(c)" v-for="c in currentTransactionList">
+              <img class="mosaic_action" v-if="!c.isReceipt"
+                   src="@/common/img/monitor/dash-board/dashboardMosaicOut.png" alt="">
+              <img class="mosaic_action" v-else src="@/common/img/monitor/dash-board/dashboardMosaicIn.png"
+                   alt="">
               <span class="account">{{c.oppositeAddress}}</span>
               <span class="transfer_type">{{c.isReceipt ? $t('gathering'):$t('payment')}}</span>
+              <span class="mosaicId">{{c.mosaic?c.mosaic.id.toHex().toUpperCase():null}}</span>
               <span class="amount" v-if="c.mosaic">{{c.isReceipt ? '+':'-'}}{{c.mosaic.amount.compact()}}</span>
+              <span v-else class="amount"> 0</span>
               <span class="date">{{c.time}}</span>
-              <img src="../../../assets/images/monitor/dash-board/dashboardExpand.png"
+              <img src="@/common/img/monitor/dash-board/dashboardExpand.png"
                    class="radius expand_mosaic_info">
             </div>
             <div class="no_data" v-if="confirmedTransactionList.length == 0">
@@ -86,15 +93,19 @@
           <div class="table_body hide_scroll" ref="unconfirmedTableBody">
             <div class="table_item pointer" @click="showDialog(u)" v-for="(u,index) in unconfirmedTransactionList"
                  :key="index">
-              <img class="mosaic_action" src="../../../assets/images/monitor/dash-board/dashboardMosaicIn.png" alt="">
+              <img class="mosaic_action" v-if="u.isReceipt"
+                   src="@/common/img/monitor/dash-board/dashboardMosaicOut.png" alt="">
+              <img class="mosaic_action" v-else src="@/common/img/monitor/dash-board/dashboardMosaicIn.png"
+                   alt="">
               <span class="account">{{u.oppositeAddress}}</span>
               <span class="transfer_type">{{u.isReceipt ? $t('gathering'):$t('payment')}}</span>
               <span class="amount">{{u.isReceipt ? '+':'-'}}{{u.mosaic.amount.compact()}}</span>
               <span class="date">{{u.time}}</span>
-              <img src="../../../assets/images/monitor/dash-board/dashboardExpand.png"
+              <img src="@/common/img/monitor/dash-board/dashboardExpand.png"
                    class="radius expand_mosaic_info">
             </div>
-            <div class="no_data" v-if="unconfirmedTransactionList.length == 0">{{$t('no_unconfirmed_transactions')}}
+            <div class="no_data" v-if="unconfirmedTransactionList.length == 0">
+              {{$t('no_unconfirmed_transactions')}}
             </div>
           </div>
         </div>
@@ -104,41 +115,47 @@
 </template>
 
 <script lang="ts">
-    import {
-        PublicAccount,
-        NetworkType,
-    } from 'nem2-sdk';
-    import {
-        isRefreshData,
-        localSave,
-        localRead,
-        formatTransactions
-    } from '@/utils/util.js'
-    import {Component, Vue, Watch} from 'vue-property-decorator';
-    import LineChart from '@/components/LineChart.vue'
-    import axios from 'axios'
-    import {transactionInterface} from '@/interface/sdkTransaction'
+    import {market} from "@/interface/restLogic"
+    import {KlineQuery} from "@/query/klineQuery"
+    import LineChart from '@/common/vue/line-chart/LineChart.vue'
+    import {PublicAccount, NetworkType} from 'nem2-sdk'
+    import numberGrow from '@/common/vue/number-grow/NumberGrow.vue'
+    import {Component, Vue, Watch} from 'vue-property-decorator'
     import {blockchainInterface} from '@/interface/sdkBlockchain'
-    import dashboardBlockHeight from '@/assets/images/monitor/dash-board/dashboardBlockHeight.png'
-    import dashboardBlockTime from '@/assets/images/monitor/dash-board/dashboardBlockTime.png'
-    import dashboardPointAmount from '@/assets/images/monitor/dash-board/dashboardPointAmount.png'
-    import dashboardTransactionAmount from '@/assets/images/monitor/dash-board/dashboardTransactionAmount.png'
-    import dashboardPublickey from '@/assets/images/monitor/dash-board/dashboardPublickey.png'
+    import {transactionInterface} from '@/interface/sdkTransaction'
+    import {isRefreshData, localSave, localRead, formatTransactions} from '@/help/help.ts'
+    import dashboardBlockTime from '@/common/img/monitor/dash-board/dashboardBlockTime.png'
+    import dashboardPublickey from '@/common/img/monitor/dash-board/dashboardPublickey.png'
+    import dashboardBlockHeight from '@/common/img/monitor/dash-board/dashboardBlockHeight.png'
+    import dashboardPointAmount from '@/common/img/monitor/dash-board/dashboardPointAmount.png'
+    import dashboardTransactionAmount from '@/common/img/monitor/dash-board/dashboardTransactionAmount.png'
+
 
     @Component({
         components: {
-            LineChart
+            LineChart,
+            numberGrow
         }
     })
     export default class DashBoard extends Vue {
-        isLoadingConfirmedTx = true
-        isLoadingUnconfirmedTx = false
+        node = ''
+        currentXem = ''
+        accountAddress = ''
+        updateAnimation = ''
         isShowDialog = false
+        accountPublicKey = ''
         currentDataAmount = 0
-        unconfirmedDataAmount = 0
-        confirmedDataAmount = 0
-        xemNum: number = 8999999999
         currentPrice: any = 0
+        accountPrivateKey = ''
+        confirmedDataAmount = 0
+        unconfirmedDataAmount = 0
+        currentTransactionList = []
+        xemNum: number = 8999999999
+        isLoadingConfirmedTx = true
+        confirmedTransactionList = []
+        isLoadingUnconfirmedTx = false
+        unconfirmedTransactionList = []
+        showConfirmedTransactions = true
         networkStatusList = [
             {
                 icon: dashboardBlockHeight,
@@ -168,7 +185,6 @@
                 variable: 'signerPublicKey'
             }
         ]
-        showConfirmedTransactions = true
         transactionDetails = [
             {
                 key: 'transfer_type',
@@ -203,19 +219,13 @@
                 value: 'message test this'
             }
         ]
-        accountPrivateKey = ''
-        accountPublicKey = ''
-        accountAddress = ''
-        node = ''
-        currentXem = ''
-        confirmedTransactionList = []
-        unconfirmedTransactionList = []
-
-
-
 
         get getWallet() {
             return this.$store.state.account.wallet
+        }
+
+        get ConfirmedTxList() {
+            return this.$store.state.account.ConfirmedTx
         }
 
         showDialog(transaction) {
@@ -227,11 +237,15 @@
                 },
                 {
                     key: 'from',
-                    value: transaction.oppositeAddress
+                    value: transaction.signerAddress
                 },
                 {
                     key: 'aims',
-                    value: transaction.target
+                    value: transaction.recipientAddress
+                },
+                {
+                    key: 'mosaic',
+                    value: transaction.mosaic ? transaction.mosaic.id.toHex().toUpperCase() : null
                 },
                 {
                     key: 'the_amount',
@@ -260,29 +274,26 @@
         async getMarketOpenPrice() {
             if (!isRefreshData('openPriceOneMinute', 1000 * 60, new Date().getSeconds())) {
                 const openPriceOneMinute = JSON.parse(localRead('openPriceOneMinute'))
-                console.log(openPriceOneMinute)
                 this.currentPrice = openPriceOneMinute.openPrice * this.xemNum
                 return
             }
             const that = this
-            const url = this.$store.state.app.marketUrl + '/kline/xemusdt/1min/1'
-            await axios.get(url).then(function (response) {
-                const result = response.data.data[0].open
-                that.currentPrice = result * that.xemNum
-                const openPriceOneMinute = {
-                    timestamp: new Date().getTime(),
-                    openPrice: result
-                }
-                localSave('openPriceOneMinute', JSON.stringify(openPriceOneMinute))
-            }).catch(function (error) {
-                console.log(error);
-            });
+            const rstStr = await market.kline({period: "1min", symbol: "xemusdt", size: "1"});
+            const rstQuery: KlineQuery = JSON.parse(rstStr.rst);
+            const result = rstQuery.data[0].close
+            that.currentPrice = result * that.xemNum
+            const openPriceOneMinute = {
+                timestamp: new Date().getTime(),
+                openPrice: result
+            }
+            localSave('openPriceOneMinute', JSON.stringify(openPriceOneMinute))
+
         }
 
         switchTransactionPanel(flag) {
             this.showConfirmedTransactions = flag
             this.currentDataAmount = flag ? this.confirmedDataAmount : this.unconfirmedDataAmount
-            console.log(this.currentDataAmount)
+            this.changePage(1)
         }
 
         getPointInfo() {
@@ -324,8 +335,10 @@
                 }
             }).then((transactionsResult) => {
                 transactionsResult.result.transactions.subscribe((transactionsInfo) => {
-                    let transferTransaction = formatTransactions(transactionsInfo, accountPublicKey)
+                    let transferTransaction = formatTransactions(transactionsInfo, accountAddress)
+                    that.changeCurrentTransactionList(transferTransaction.slice(0, 10))
                     that.confirmedDataAmount = transferTransaction.length
+                    that.currentDataAmount = transferTransaction.length
                     that.confirmedTransactionList = transferTransaction
                     that.isLoadingConfirmedTx = false
                 })
@@ -344,7 +357,9 @@
                 }
             }).then((transactionsResult) => {
                 transactionsResult.result.unconfirmedTransactions.subscribe((unconfirmedtransactionsInfo) => {
-                    let transferTransaction = formatTransactions(unconfirmedtransactionsInfo, accountPublicKey)
+                    let transferTransaction = formatTransactions(unconfirmedtransactionsInfo, accountAddress)
+                    that.changeCurrentTransactionList(transferTransaction.slice(0, 10))
+                    that.currentDataAmount = transferTransaction.length
                     that.unconfirmedDataAmount = transferTransaction.length
                     that.unconfirmedTransactionList = transferTransaction
                     that.isLoadingUnconfirmedTx = false
@@ -360,6 +375,23 @@
             this.currentXem = this.$store.state.account.currentXem
         }
 
+        changeCurrentTransactionList(list: Array<any>) {
+            this.currentTransactionList = list
+        }
+
+        changePage(page) {
+            const pageSize = 10
+            const {showConfirmedTransactions} = this
+            const start = (page - 1) * pageSize
+            const end = page * pageSize
+            if (showConfirmedTransactions) {
+                //confirmed
+                this.changeCurrentTransactionList(this.confirmedTransactionList.slice(start, end))
+                return
+            }
+            this.changeCurrentTransactionList(this.unconfirmedTransactionList.slice(start, end))
+        }
+
         @Watch('getWallet')
         onGetWalletChange() {
             this.initData()
@@ -369,34 +401,29 @@
             this.getPointInfo()
         }
 
-        // testData = 0
-        // testCss = 'showUpdate'
-        // test(){
-        //     setInterval(()=>{
-        //         this.testData ++
-        //     },2000)
-        // }
+        @Watch('ConfirmedTxList')
+        onConfirmedTxChange() {
+            this.getUnconfirmedTransactions()
+            this.getConfirmedTransactions()
+        }
 
-        updateAnimation = ''
-        get currentHeight () {
+        get currentHeight() {
             return this.$store.state.app.chainStatus.currentHeight
         }
 
         @Watch('currentHeight')
         onChainStatus() {
-            console.log('status change............',this.currentHeight)
-            this.updateAnimation = 'showUpdate'
-
-            setTimeout(()=>{
-                this.updateAnimation = ' '
-            },1000)
+            this.updateAnimation = 'appear'
+            setTimeout(() => {
+                this.updateAnimation = 'appear'
+            }, 500)
         }
 
         created() {
             this.initData()
             this.getMarketOpenPrice()
-            this.getUnconfirmedTransactions()
             this.getConfirmedTransactions()
+            this.getUnconfirmedTransactions()
             this.getPointInfo()
 
         }

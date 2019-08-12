@@ -1,6 +1,17 @@
 import {
-    MosaicDefinitionTransaction, Deadline, MosaicNonce, MosaicId, NamespaceMosaicIdGenerator,Id,Mosaic,AggregateTransaction,
-    MosaicProperties, UInt64, MosaicSupplyChangeTransaction, MosaicHttp, Convert, NetworkCurrencyMosaic,MosaicSupplyType
+    MosaicDefinitionTransaction,
+    Deadline,
+    MosaicNonce,
+    MosaicId,
+    NamespaceMosaicIdGenerator,
+    AggregateTransaction,
+    MosaicProperties,
+    UInt64,
+    MosaicSupplyChangeTransaction,
+    MosaicHttp,
+    Convert,
+    NetworkCurrencyMosaic,
+    MosaicSupplyType
 } from 'nem2-sdk'
 import {SdkV0} from "./sdkDefine";
 
@@ -76,7 +87,7 @@ export const mosaicInterface: SdkV0.mosaic = {
                 supplyMutable: supplyMutable,
                 transferable: transferable,
                 divisibility: divisibility,
-                duration: UInt64.fromUint(duration)
+                duration: duration ? UInt64.fromUint(duration) : undefined
             }),
             netWorkType,
             maxFee ? UInt64.fromUint(maxFee) : undefined
@@ -137,7 +148,7 @@ export const mosaicInterface: SdkV0.mosaic = {
     },
 
     getMosaicsNames: async (params) => {
-        const mosaicsNamesInfos = new MosaicHttp(params.node).getMosaicsNames(params.mosaicIds)
+        const mosaicsNamesInfos = await new MosaicHttp(params.node).getMosaicsNames(params.mosaicIds)
         return {
             result: {
                 mosaicsNamesInfos: mosaicsNamesInfos

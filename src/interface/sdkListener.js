@@ -1,16 +1,85 @@
 var _this = this;
 import * as tslib_1 from "tslib";
-import { TransactionHttp } from 'nem2-sdk';
-// @ts-ignore
 import { filter, mergeMap } from 'rxjs/operators';
+import { TransactionHttp } from 'nem2-sdk';
 export var wsInterface = {
     openWs: function (params) { return tslib_1.__awaiter(_this, void 0, void 0, function () {
         var Observable;
         return tslib_1.__generator(this, function (_a) {
-            Observable = params.listener.open();
+            Observable = params.listener.open().catch(function (e) {
+                console.log(e);
+            });
             return [2 /*return*/, {
                     result: {
                         ws: Observable
+                    }
+                }];
+        });
+    }); },
+    listenerUnconfirmed: function (params) { return tslib_1.__awaiter(_this, void 0, void 0, function () {
+        var listener;
+        return tslib_1.__generator(this, function (_a) {
+            listener = params.listener;
+            listener.open().then(function () {
+                listener
+                    .unconfirmedAdded(params.address)
+                    .pipe(filter(function (transaction) { return transaction.transactionInfo !== undefined; }))
+                    .subscribe(function (transactionInfo) {
+                    params.fn(transactionInfo);
+                });
+            }, function (err) {
+                console.log(err);
+            }).catch(function (e) {
+                console.log(e);
+            });
+            return [2 /*return*/, {
+                    result: {
+                        ws: 'Ok'
+                    }
+                }];
+        });
+    }); },
+    listenerConfirmed: function (params) { return tslib_1.__awaiter(_this, void 0, void 0, function () {
+        var listener;
+        return tslib_1.__generator(this, function (_a) {
+            listener = params.listener;
+            listener.open().then(function () {
+                listener
+                    .confirmed(params.address)
+                    .pipe(filter(function (transaction) { return transaction.transactionInfo !== undefined; }))
+                    .subscribe(function (transactionInfo) {
+                    params.fn(transactionInfo);
+                });
+            }, function (err) {
+                console.log(err);
+            }).catch(function (e) {
+                console.log(e);
+            });
+            return [2 /*return*/, {
+                    result: {
+                        ws: 'Ok'
+                    }
+                }];
+        });
+    }); },
+    listenerTxStatus: function (params) { return tslib_1.__awaiter(_this, void 0, void 0, function () {
+        var listener;
+        return tslib_1.__generator(this, function (_a) {
+            listener = params.listener;
+            listener.open().then(function () {
+                listener
+                    .status(params.address)
+                    .subscribe(function (transactionInfo) {
+                    params.fn(transactionInfo);
+                });
+            }, function (err) {
+                console.log(err);
+            }).catch(function (e) {
+                console.log(e);
+            });
+            return [2 /*return*/, {
+                    result: {
+                        ws: 'Ok'
                     }
                 }];
         });
@@ -29,6 +98,8 @@ export var wsInterface = {
                     && transaction.transactionInfo.hash === params.signedLockTx.hash; }), mergeMap(function (ignored) { return transactionHttp.announceAggregateBonded(params.signedBondedTx); }))
                     .subscribe(function (announcedAggregateBonded) {
                 }, function (err) { return console.error(err); });
+            }).catch(function (e) {
+                console.log(e);
             });
             return [2 /*return*/, {
                     result: {
@@ -64,6 +135,8 @@ export var wsInterface = {
                 }, function (err) {
                     console.log(err);
                 });
+            }).catch(function (e) {
+                console.log(e);
             });
             return [2 /*return*/, {
                     result: {
