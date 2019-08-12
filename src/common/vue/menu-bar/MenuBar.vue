@@ -39,7 +39,7 @@
               </span>
               <div slot="title" class="title">{{$t('current_point')}}：{{$store.state.account.node}}</div>
               <div slot="content">
-                <div @click="selectPoint(index)" class="point_item pointer" v-for="(p,index) in nodetList">
+                <div @click="selectPoint(index)" class="point_item pointer" v-for="(p,index) in nodetList" :key="index">
                   <img :src="p.isSelected ? monitorSeleted : monitorUnselected">
                   <span>{{p.name}} ({{p.url}})</span>
                 </div>
@@ -55,13 +55,13 @@
           <div class="switch_language">
             <i-select @on-change="switchLanguage" :model="currentLanguage"
                       :placeholder="currentLanguage ? $store.state.app.localMap[currentLanguage] : '中文'">
-              <i-option v-for="item in languageList" :value="item.value">{{ item.label }}</i-option>
+              <i-option v-for="(item, index) in languageList" :value="item.value" :key="index">{{ item.label }}</i-option>
             </i-select>
           </div>
           <div class="switch_wallet" v-if="showSelectWallet&&walletList.length > 0">
             <img class="select_wallet_icon" src="../../img/window/windowWalletSelect.png" alt="">
             <i-select @on-change="switchWallet" v-model="currentWallet" :placeholder="walletList[0].name">
-              <i-option v-for="item in walletList" :value="item.address">{{ item.name }}</i-option>
+              <i-option v-for="(item, index) in walletList" :value="item.address" :key="index">{{ item.name }}</i-option>
             </i-select>
           </div>
         </div>
@@ -82,7 +82,7 @@
     import monitorSeleted from '@/common/img/window/windowSelected.png'
     import monitorUnselected from '@/common/img/window/windowUnselected.png'
     import {blockchainInterface} from '@/interface/sdkBlockchain.js';
-    import {Message} from "config/index";
+    import {Message} from "@/config/index";
     import {Address, Listener, NamespaceHttp, NamespaceId} from "nem2-sdk";
     import {wsInterface} from "@/interface/sdkListener";
     import {sessionRead, sessionSave, localSave, localRead} from "@/help/help";
