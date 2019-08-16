@@ -34,9 +34,6 @@
             this.$store.state.account.wallet = walletList[0]
             this.$store.state.app.walletList = walletList
             this.$store.state.app.isInLoginPage = true
-            this.$router.push({
-                name: 'login'
-            })
         }
 
         async getAccountInfo(listItem) {
@@ -98,8 +95,9 @@
                 pointer: this
             })
         }
+
         created() {
-            checkInstall()
+            // checkInstall()
             this.initData()
             this.initApp()
             this.chainListner()

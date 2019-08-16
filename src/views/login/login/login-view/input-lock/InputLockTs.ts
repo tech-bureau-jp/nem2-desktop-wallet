@@ -34,7 +34,6 @@ export class InputLockTs extends Vue {
         if (!this.checkInput()) {
             return
         }
-
         let lock: any = localRead('lock')
         try {
             const u = [50, 50]
@@ -63,11 +62,11 @@ export class InputLockTs extends Vue {
             })
             return
         }
+        // alert('monitorPanel')
         this.$store.state.app.isInLoginPage = false
         this.$router.push({
             name: 'monitorPanel'
         })
-
     }
 
     clearCache() {
@@ -80,6 +79,5 @@ export class InputLockTs extends Vue {
     created() {
         this.$store.state.app.isInLoginPage = true
         this.lockPromptText = JSON.parse(localRead('lock')).remindTxt
-
     }
 }

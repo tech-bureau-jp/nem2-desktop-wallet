@@ -43,9 +43,7 @@ export const windowSizeChange = () => {
         const electron = window['electron'];
         const mainWindow =electron.remote.getCurrentWindow()
         mainWindow.on('resize',() => {
-            setTimeout(()=>{
-                resetFontSize()
-            },100)
+            resetFontSize()
         })
     }
 }
