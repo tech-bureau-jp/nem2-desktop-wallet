@@ -5,16 +5,31 @@
             :title="$t(currentTitle)"
             v-model="isShowDialog"
             :transfer="true"
-            class-name="alias_bind_dialog filter_dialog">
+            class-name="filter_dialog">
 
       <!--      address-->
       <div class="address_dialog" v-if="filterTypeList[0]">
         <div class="input_content">
           <div class="title">{{$t('address')}}</div>
+
           <div class="input_area">
-            <input type="text" :placeholder="$t('address')" v-model="formItem.address">
+            <input type="text" :placeholder="$t('address')" v-model="currentFilter">
+            <span class="icon_add radius pointer tip" @click="addFilterItem()"></span>
           </div>
+
         </div>
+
+        <div class="property_type" v-if="showPropertyType">
+          <RadioGroup v-model="formItem.filterType">
+            <Radio :label="PropertyType.AllowAddress">
+              <span>allow</span>
+            </Radio>
+            <Radio :label="PropertyType.BlockAddress">
+              <span>block</span>
+            </Radio>
+          </RadioGroup>
+        </div>
+
         <div class="input_content">
           <div class="title">{{$t('fee')}}</div>
           <div class="input_area">
@@ -28,17 +43,39 @@
             <input type="password" v-model="formItem.password" :placeholder="$t('please_enter_your_wallet_password')">
           </div>
         </div>
+
+        <div class="filter_list_container radius">
+          <div class="filter_list scroll ">
+            <div class="filter_item" v-for="(f,index) in formItem.filterList">
+              <span class="filter_item_str overflow_ellipsis">{{f.label}}</span>
+              <span class="icon_delete" @click="removeFilterItem(index)"></span>
+            </div>
+          </div>
+        </div>
+
       </div>
 
       <!--      mosaic-->
-
       <div class="address_dialog" v-if="filterTypeList[1]">
         <div class="input_content">
           <div class="title">{{$t('mosaic')}}</div>
           <div class="input_area">
-            <input v-model="formItem.mosaic" type="text" :placeholder="$t('mosaic')">
+            <input v-model="currentFilter" type="text" :placeholder="$t('mosaic')">
+            <span class="icon_add radius pointer tip" @click="addFilterItem()"></span>
           </div>
         </div>
+
+        <div class="property_type" v-if="showPropertyType">
+          <RadioGroup v-model="formItem.filterType">
+            <Radio :label="PropertyType.AllowMosaic">
+              <span>allow</span>
+            </Radio>
+            <Radio :label="PropertyType.BlockTransaction">
+              <span>block</span>
+            </Radio>
+          </RadioGroup>
+        </div>
+
         <div class="input_content">
           <div class="title">{{$t('fee')}}</div>
           <div class="input_area">
@@ -52,6 +89,15 @@
             <input type="password" v-model="formItem.password" :placeholder="$t('please_enter_your_wallet_password')">
           </div>
         </div>
+        <div class="filter_list_container radius">
+          <div class="filter_list scroll ">
+            <div class="filter_item" v-for="(f,index) in formItem.filterList">
+              <span class="filter_item_str overflow_ellipsis">{{f.label}}</span>
+              <span class="icon_delete" @click="removeFilterItem(index)"></span>
+            </div>
+          </div>
+        </div>
+
       </div>
 
       <!-- entity type-->
@@ -59,8 +105,25 @@
         <div class="input_content">
           <div class="title">{{$t('transaction_type')}}</div>
           <div class="input_area">
-            <input type="text" v-model="formItem.entityType" value="transfer transaction">
+
+            <Select v-model="currentFilter" class="select" :placeholder="$t('please_choose_entity_type')">
+              <Option v-for="item in entityTypeList" :value="item.label" :key="item.value">{{ $t(item.label )}}</Option>
+            </Select>
+
+            <span>{{currentFilter?entityTypeList[currentFilter].value:''}}</span>
+
+            <span class="icon_add radius pointer tip" @click="addFilterItem()"></span>
           </div>
+        </div>
+        <div class="property_type" v-if="showPropertyType">
+          <RadioGroup v-model="formItem.filterType">
+            <Radio :label="PropertyType.AllowTransaction">
+              <span>allow</span>
+            </Radio>
+            <Radio :label="PropertyType.BlockTransaction">
+              <span>block</span>
+            </Radio>
+          </RadioGroup>
         </div>
         <div class="input_content">
           <div class="title">{{$t('fee')}}</div>
@@ -75,14 +138,24 @@
             <input type="password" v-model="formItem.password" :placeholder="$t('please_enter_your_wallet_password')">
           </div>
         </div>
+        <div class="filter_list_container radius">
+          <div class="filter_list scroll ">
+            <div class="filter_item" v-for="(f,index) in formItem.filterList">
+              <span class="filter_item_str overflow_ellipsis">{{f.label}}</span>
+              <span class="icon_delete" @click="removeFilterItem(index)"></span>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div class="button_content">
-        <span class="cancel pointer" @click="isShowDialog=false">{{$t('canel')}}</span>
-        <span class=" confirm " @click="confirmInput">{{$t('confirm')}}</span>
+        <span class="cancel pointer radius" @click="isShowDialog=false">{{$t('canel')}}</span>
+        <span class=" confirm pointer radius" @click="confirmInput">{{$t('confirm')}}</span>
       </div>
     </Modal>
 
+
+    <!--    filter panel-->
     <div class="tableTit">
       <Row>
         <Col span="3">
@@ -98,8 +171,11 @@
                 @click="showFilterTypeListIndex(2)">{{$t('transaction_type')}}</span>
         </Col>
         <Col span="14">
-          <span class="right alias_delete pointer" @click="isShowDeleteIcon=true"></span>
-          <span class="right alias_add pointer" @click="isShowDialog=true"></span>
+          <!--          <span class="right alias_delete pointer" @click="isShowDeleteIcon=true"></span>-->
+          <!--          <span class="right alias_add pointer" @click="isShowDialog=true"></span>-->
+          <!--          TODO filter can't use-->
+          <span class="right alias_delete pointer"></span>
+          <span class="right alias_add pointer"></span>
         </Col>
       </Row>
     </div>
@@ -139,84 +215,12 @@
 </template>
 
 <script lang="ts">
-    import {Message} from "@/config/index"
-    import {Component, Vue} from 'vue-property-decorator'
+    import "./WalletFilter.less"
+    import {WalletFilterTs} from './WalletFilterTs'
 
-    @Component
-    export default class WalletFilter extends Vue {
-        aliasList = []
-        isShowDialog = false
-        isShowDeleteIcon = false
-        currentAlias: any = false
-        currentTitle = 'add_address'
-        filterTypeList = [true, false, false]
-        titleList = ['add_address', 'add_mosaic', 'add_entity_type']
-        formItem = {
-            address: '',
-            fee: 0,
-            password: '',
-            mosaic: '',
-            entityType: -1
-        }
-        namespaceList = [
-            {
-                label: 'no data',
-                value: 'no data'
-            }
-        ]
-
-        showFilterTypeListIndex(index) {
-            this.currentTitle = this.titleList[index]
-            this.filterTypeList = [false, false, false]
-            this.filterTypeList[index] = true
-        }
-
-        checkForm(): boolean {
-            const {fee, password, address, mosaic, entityType} = this.formItem
-            const {filterTypeList} = this
-            if (password || password.trim()) {
-                this.showErrorMessage(this.$t(Message.INPUT_EMPTY_ERROR) + '')
-                return false
-            }
-
-            if ((!Number(fee) && Number(fee) !== 0) || Number(fee) < 0) {
-                this.showErrorMessage(this.$t(Message.FEE_LESS_THAN_0_ERROR))
-                return false
-            }
-
-            if (filterTypeList[0] && address.length < 40) {
-                this.showErrorMessage(this.$t(Message.ADDRESS_FORMAT_ERROR))
-                return false
-            }
-
-
-            if (filterTypeList[1] && mosaic) {
-                this.showErrorMessage(this.$t(Message.INPUT_EMPTY_ERROR))
-                return false
-            }
-
-            if (filterTypeList[2] && entityType) {
-                this.showErrorMessage(this.$t(Message.INPUT_EMPTY_ERROR))
-                return false
-            }
-
-            return true
-        }
-
-        showErrorMessage(message) {
-            this.$Notice.destroy()
-            this.$Notice.error({
-                title: message
-            })
-        }
-
-        confirmInput() {
-            if (!this.checkForm()) return
-
-        }
+    export default class WalletFilter extends WalletFilterTs {
 
     }
 </script>
 <style scoped lang="less">
-  @import "WalletFilter.less";
 </style>

@@ -1,9 +1,7 @@
+.ivu-select-visible .ivu-select-selection {
+   box-shadow: none;
+}
 .app_controller {
-
-  .ivu-select-visible .ivu-select-selection {
-    box-shadow: none;
-  }
-
   .switch_wallet {
     .ivu-select-placeholder,
     .ivu-select-selected-value {
@@ -65,6 +63,7 @@
 
 .relogin_container {
   .switch_language {
+    z-index: 999;
     .ivu-select-single .ivu-select-selection .ivu-select-placeholder,
     .ivu-select-single .ivu-select-selection .ivu-select-selected-value {
       position: relative;
@@ -167,13 +166,12 @@
 
   .bottom_account_info {
     .ivu-tabs-nav {
-      right: 25px !important;
-      padding-left: 6px;
+      right: 25px !important; 
     }
 
 
     .ivu-tabs-mini .ivu-tabs-tab {
-      padding: 0 0 15px 0 !important;
+      padding: 0 0 15px 6px  !important;
       width: 100px;
       font-size: 14px;
       text-align: center;
@@ -500,6 +498,21 @@
   }
 }
 
+.ivu-radio-checked .ivu-radio-inner {
+  border-color: #20B5AC !important;
+  color: #333333 !important;
+}
+
+ .ivu-radio-inner {
+  position: relative;
+  border-color: #20B5AC !important;
+  border-radius: 50% !important;
+}
+
+ .ivu-radio-inner:after {
+  background-color: #20B5AC !important;
+}
+
 .login_content {
   .ivu-carousel-dots-inside {
     bottom: 50px;
@@ -662,7 +675,7 @@
     font-size: 16px;
     font-weight: 400;
     color: rgba(153, 153, 153, 1) !important;
-    margin-left: 32px;
+    margin-left: 12px;
   }
 
   .ivu-select-selected-value {
@@ -733,8 +746,13 @@
   .form_item {
     .ivu-select-placeholder {
       color: #CCCCCC !important;
+	  font-size: 14px !important;
     }
-
+	
+    .ivu-select-selected-value {
+      font-size: 14px !important;
+    }
+	
     i::before {
       color: #999999 !important;
     }
@@ -857,48 +875,13 @@
         display: inline-block;
         width: 86px;
         height: 44px;
-        background: rgba(38, 180, 176, 1);
         line-height: 44px;
         text-align: center;
-        color: white;
-
-      }
-
-      .cancel {
-        margin-right: 20px;
-        background: rgba(238, 238, 238, 1);
-        color: #989898;
-      }
-    }
-  }
-
-  .filter_dialog.alias_bind_dialog {
-    .ivu-modal {
-      width: 500px !important;
-      height: 477px !important;
-      background: rgba(255, 255, 255, 1);
-      border-radius: 8px;
-    }
-
-    .ivu-modal-content {
-      width: 500px !important;
-      height: 527px !important;
-
-      .ivu-modal-body {
-        padding: 14px 55px 0 55px;
       }
     }
   }
 }
 
-.setting_container  {
-  .ivu-select{
-    height: 45px !important;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    padding: 8px 0;
-  }
-}
 .setting_container {
   .ivu-select {
     height: 45px !important;
@@ -912,9 +895,10 @@
 // $notice
 .ivu-notice {
   position: fixed !important;
-  bottom: 50px !important;
-  top: auto !important;
-  width: 300px !important;
+  top: 50px !important;
+  width: auto !important;
+  max-width: 500px !important;
+  z-index: 99999999 !important;
 
   .ivu-notice-notice {
     width: 100%;
@@ -939,7 +923,8 @@
     }
 
     .ivu-notice-title {
-      width: 180px;
+      max-width: 500px;
+      width: auto;
       height: auto;
       color: white;
       overflow: unset;

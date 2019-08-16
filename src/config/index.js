@@ -1,3 +1,4 @@
+import { TransactionType } from 'nem2-sdk';
 export var apiUrl = process.env.NODE_ENV === 'production' ? 'http://120.79.181.170' : 'http://120.79.181.170';
 export var bandedNamespace = ['nem', 'user', 'account', 'org', 'com', 'biz', 'net', 'edu', 'mil', 'gov ', 'info'];
 export var AppConfig = {
@@ -52,5 +53,90 @@ export var Message = {
     NAMESPACE_FORMAT_ERROR: 'Namespace_can_only_contain_numbers_letters_and_other',
     NAMESPACE_USE_BANDED_WORD_ERROR: 'Namespace_cannot_use_forbidden_words',
     SUB_NAMESPACE_LENGTH_LONGER_THAN_64_ERROR: 'The_sub_namespace_cannot_be_longer_than_16'
+};
+export var transactionTag = {
+    GATHERING: 'gathering',
+    PAYMENT: 'payment',
+    REGIST_NAMESPACE: 'regist_namespace',
+    ADDRESS_ALIAS: 'address_alias',
+    MOSAIC_ALIAS: 'mosaic_alias',
+    MOSAIC_DEFINITION: 'mosaic_definition',
+    MOSAIC_SUPPLY_CHANGE: 'mosaic_supply_change',
+    MODIFY_MULTISIG_ACCOUNT: 'modify_multisig_account',
+    AGGREGATE_COMPLETE: 'aggregate_complete',
+    AGGREGATE_BONDED: 'aggregate_bonded',
+    LOCK: 'lock',
+    SECRET_LOCK: 'secret_lock',
+    SECRET_PROOF: 'scret_proof',
+    MODIFY_ACCOUNT_PROPERTY_ADDRESS: 'modify_account_property_address',
+    MODIFY_ACCOUNT_PROPERTY_MOSAIC: 'modify_account_property_mosaic',
+    MODIFY_ACCOUNT_PROPERTY_ENTITY_TYPE: 'modify_account_property_entity_type',
+    LINK_ACCOUNT: 'link_account'
+};
+export var entityTypeList = {
+    'transfer': {
+        label: 'transfer',
+        value: TransactionType.TRANSFER
+    },
+    'regist_namespace': {
+        label: 'regist_namespace',
+        value: TransactionType.REGISTER_NAMESPACE
+    },
+    'address_alias': {
+        label: 'address_alias',
+        value: TransactionType.ADDRESS_ALIAS
+    },
+    'mosaic_alias': {
+        label: 'mosaic_alias',
+        value: TransactionType.MOSAIC_ALIAS
+    },
+    'mosaic_definition': {
+        label: 'mosaic_definition',
+        value: TransactionType.MOSAIC_DEFINITION
+    },
+    'mosaic_supply_change': {
+        label: 'mosaic_supply_change',
+        value: TransactionType.MOSAIC_SUPPLY_CHANGE
+    },
+    'modify_multisig_account': {
+        label: 'modify_multisig_account',
+        value: TransactionType.MODIFY_MULTISIG_ACCOUNT
+    },
+    'aggregate_complete': {
+        label: 'aggregate_complete',
+        value: TransactionType.AGGREGATE_COMPLETE
+    },
+    'aggregate_bonded': {
+        label: 'aggregate_bonded',
+        value: TransactionType.AGGREGATE_BONDED
+    },
+    'lock': {
+        label: 'lock',
+        value: TransactionType.LOCK
+    },
+    'secret_lock': {
+        label: 'secret_lock',
+        value: TransactionType.SECRET_LOCK
+    },
+    'scret_proof': {
+        label: 'scret_proof',
+        value: TransactionType.SECRET_PROOF
+    },
+    'modify_account_property_address': {
+        label: 'modify_account_property_address',
+        value: TransactionType.MODIFY_ACCOUNT_PROPERTY_ADDRESS
+    },
+    'modify_account_property_mosaic': {
+        label: 'modify_account_property_address',
+        value: TransactionType.MODIFY_ACCOUNT_PROPERTY_MOSAIC
+    },
+    'modify_account_property_entity_type': {
+        label: 'modify_account_property_entity_type',
+        value: TransactionType.MODIFY_ACCOUNT_PROPERTY_ENTITY_TYPE
+    },
+    'link_account': {
+        label: 'link_account',
+        value: TransactionType.LINK_ACCOUNT
+    }
 };
 //# sourceMappingURL=index.js.map

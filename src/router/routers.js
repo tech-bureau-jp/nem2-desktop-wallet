@@ -99,7 +99,7 @@ var routers = [
                         path: '/onDev',
                         name: 'onDev',
                         // @ts-ignore
-                        component: function () { return import('@/views/other/onDev/OnDev.vue'); }
+                        component: function () { return import('@/views/other/on-development/OnDevelopment.vue'); }
                     }, {
                         path: '/namespace',
                         name: 'namespace',
@@ -111,8 +111,8 @@ var routers = [
                         // @ts-ignore
                         component: function () { return import('@/views/service/mosaic/Mosaic.vue'); }
                     }, {
-                        path: '/multisig',
-                        name: 'multisig',
+                        path: '/multisigApi',
+                        name: 'multisigApi',
                         // @ts-ignore
                         component: function () { return import('@/views/service/multisig/Multisig.vue'); }
                     },
@@ -183,13 +183,7 @@ var routers = [
                 path: '/login',
                 name: 'login',
                 component: function () { return import('@/views/login/login/Login.vue'); },
-            },
-            {
-                path: '/createLockPW',
-                name: 'createLockPW',
-                // @ts-ignore
-                component: function () { return import('@/views/login/create-lock-password/CreateLockPassword.vue'); },
-            },
+            }
         ]
     },
 ];

@@ -19,15 +19,17 @@
         <div class="stepItem1" v-if="stepIndex == 0">
           <Form :model="wallet">
             <FormItem>
-              <Input v-model="wallet.password" required :placeholder="$t('please_enter_your_wallet_password')"></Input>
+              <Input v-model="wallet.password" type="password" required
+                     :placeholder="$t('please_enter_your_wallet_password')"></Input>
             </FormItem>
             <FormItem>
-              <Button type="success" class="disabled" @click="exportKeystore">{{$t('next')}}
+              <Button type="success" class="not_allowed" @click="exportKeystore">{{$t('next')}}
                 <Icon type="ios-arrow-round-forward"/>
               </Button>
             </FormItem>
           </Form>
         </div>
+
         <div class="stepItem2" v-if="stepIndex == 1">
           <div class="step2Txt">
             <Row>
@@ -58,6 +60,7 @@
             <Icon type="ios-arrow-round-forward"/>
           </Button>
         </div>
+
         <div class="stepItem3" v-if="stepIndex == 2">
           <Row>
             <Col span="15">
@@ -85,6 +88,7 @@
             </Col>
           </Row>
         </div>
+
         <div class="stepItem4" v-if="stepIndex == 3">
           <div class="QRCodeImg">
             <img :src="QRCode">
@@ -110,72 +114,10 @@
 
 <script lang="ts">
     import './KeystoreDialog.less'
-    import {Message} from "@/config/index"
-    import {createQRCode, copyTxt} from '@/help/help'
-    import {Component, Vue, Prop, Watch} from 'vue-property-decorator'
+    import {KeystoreDialogTs} from './KeystoreDialogTs'
 
-    @Component
-    export default class keystoreDialog extends Vue {
-        stepIndex = 0
-        show = false
-        QRCode = ''
-        wallet = {
-            password: '',
-            keystore: ''
-        }
+    export default class KeystoreDialog extends KeystoreDialogTs {
 
-        @Prop()
-        showKeystoreDialog: boolean
-
-        keystoreDialogCancel() {
-            this.$emit('closeKeystoreDialog')
-            setTimeout(() => {
-                this.stepIndex = 0
-            }, 300)
-        }
-
-        exportKeystore() {
-            // TODO
-            return
-            switch (this.stepIndex) {
-                case 0 :
-                    this.stepIndex = 1
-                    break;
-                case 1 :
-                    this.stepIndex = 2
-                    break;
-                case 2 :
-                    this.stepIndex = 3
-                    break;
-            }
-        }
-
-        toPrevPage() {
-            this.stepIndex = 2
-        }
-
-        copyKeystore() {
-            copyTxt(this.wallet.keystore).then((data) => {
-                this.$Notice.success({
-                    title: this.$t(Message.COPY_SUCCESS) + ''
-                });
-            })
-        }
-
-        saveQRCode() {
-
-        }
-
-        @Watch('showKeystoreDialog')
-        onShowKeystoreDialogChange() {
-            this.show = this.showKeystoreDialog
-        }
-
-        created() {
-            createQRCode('TCTEXC-5TGXD7-OQCHBB-MNU3LS-2GFCB4-2KD75D-5VCN').then((data: { url }) => {
-                this.QRCode = data.url
-            })
-        }
     }
 </script>
 

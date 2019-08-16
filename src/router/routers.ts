@@ -100,7 +100,7 @@ const routers = [
                         path: '/onDev',
                         name: 'onDev',
                         // @ts-ignore
-                        component: () => import('@/views/other/onDev/OnDev.vue')
+                        component: () => import('@/views/other/on-development/OnDevelopment.vue')
                     }, {
                         path: '/namespace',
                         name: 'namespace',
@@ -112,8 +112,8 @@ const routers = [
                         // @ts-ignore
                         component: () => import('@/views/service/mosaic/Mosaic.vue')
                     }, {
-                        path: '/multisig',
-                        name: 'multisig',
+                        path: '/multisigApi',
+                        name: 'multisigApi',
                         // @ts-ignore
                         component: () => import('@/views/service/multisig/Multisig.vue')
                     },
@@ -185,13 +185,7 @@ const routers = [
                 path: '/login',
                 name: 'login',
                 component: () => import('@/views/login/login/Login.vue'),
-            },
-            {
-                path: '/createLockPW',
-                name: 'createLockPW',
-                // @ts-ignore
-                component: () => import('@/views/login/create-lock-password/CreateLockPassword.vue'),
-            },
+            }
         ]
     },
 ]

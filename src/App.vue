@@ -6,12 +6,12 @@
 
 <script lang="ts">
     import 'animate.css'
-    import fs from 'fs'
-    import {localRead} from '@/help/help'
+    import {localRead} from '@/core/utils/utils'
     import {PublicAccount, Listener} from "nem2-sdk"
-    import {wsInterface} from '@/interface/sdkListener'
+    import {listenerApi} from '@/core/api/listenerApi'
     import {Component, Vue} from 'vue-property-decorator'
-    import {accountInterface} from '@/interface/sdkAccount'
+    import {accountApi} from '@/core/api/accountApi'
+    import {checkInstall} from '@/core/utils/electron'
 
     @Component
     export default class App extends Vue {
@@ -44,7 +44,7 @@
             let node = this.$store.state.account.node
             let currentXEM2 = this.$store.state.account.currentXEM2
             let currentXEM1 = this.$store.state.account.currentXEM1
-            await accountInterface.getAccountInfo({
+            await accountApi.getAccountInfo({
                 node,
                 address: walletItem.address
             }).then(async accountInfoResult => {
@@ -68,7 +68,7 @@
         async getMultisigAccount(listItem) {
             let walletItem = listItem
             let node = this.$store.state.account.node
-            await accountInterface.getMultisigAccountInfo({
+            await accountApi.getMultisigAccountInfo({
                 node: node,
                 address: walletItem.address
             }).then((multisigAccountInfo) => {
@@ -86,28 +86,20 @@
         initData() {
             this.node = this.$store.state.account.node
             this.$Notice.config({
-                duration: 3
+                duration: 4
             });
         }
 
         chainListner() {
             const node = this.node.replace('http', 'ws')
             const listener = new Listener(node, WebSocket)
-            wsInterface.newBlock({
+            listenerApi.newBlock({
                 listener,
                 pointer: this
             })
         }
-        checkInstall () {
-            if(fs.readdirSync){
-                const root = fs.readdirSync('./')
-                console.log(root)
-            }else {
-                console.log('web')
-            }
-        }
         created() {
-            this.checkInstall()
+            checkInstall()
             this.initData()
             this.initApp()
             this.chainListner()

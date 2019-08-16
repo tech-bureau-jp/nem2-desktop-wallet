@@ -13,27 +13,16 @@
     </div>
 
     <div @click="showIndexView" class="getStart pointer">
-      GET START
+      GET STARTED
     </div>
   </div>
 </template>
 
 <script lang="ts">
-    import {Component, Vue} from 'vue-property-decorator'
+    import {GetStartTs} from './GetStartTs'
 
-    @Component
-    export default class MonitorRelogin extends Vue {
-        showStartContent = false
-        showCreateLockContent = true
-        showInputLockContent = false
+    export default class GetStart extends GetStartTs {
 
-        showIndexView() {
-            this.$emit('showIndexView', 1)
-        }
-
-        created() {
-            this.$store.state.app.isInLoginPage = true
-        }
     }
 </script>
 <style scoped lang="less">
