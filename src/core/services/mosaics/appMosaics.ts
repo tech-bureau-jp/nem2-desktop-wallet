@@ -2,7 +2,7 @@ import {MosaicAlias, MosaicId, MosaicHttp, Namespace} from 'nem2-sdk'
 import {FormattedTransfer, FormattedTransaction, FormattedAggregateComplete, AppNamespace, AppState} from '@/core/model'
 import {flatMap, map, toArray} from 'rxjs/operators'
 import {AppMosaic} from '@/core/model'
-import { Store } from 'vuex'
+import {Store} from 'vuex'
 
 export const AppMosaics = () => ({
     store: null,
@@ -14,6 +14,22 @@ export const AppMosaics = () => ({
                 && mosaic.mosaicInfo
                 && mosaic.mosaicInfo.owner.address.plain() === address
                 && (mosaic.expirationHeight === 'Forever' || currentHeight > mosaic.expirationHeight)))
+    },
+
+    getLinked(currentHeight: number, address: string, store: any): AppMosaic[] {
+        const appMosaics: AppMosaic[] = Object.values(store.getters.mosaics)
+        return appMosaics
+            .filter((mosaic: AppMosaic) => (mosaic.name
+                && mosaic.mosaicInfo
+                && mosaic.mosaicInfo.owner.address.plain() === address
+                && mosaic.expirationHeight === 'Forever'
+                || currentHeight > mosaic.expirationHeight))
+    },
+
+    getItemsWithoutProperties(mosaics: Record<string, AppMosaic>): MosaicId[] {
+        return Object.values(mosaics)
+            .filter(({properties}) => !properties)
+            .map(({hex}) => new MosaicId(hex))
     },
 
     async updateMosaicInfo(mosaics: Record<string, AppMosaic>, node: string): Promise<AppMosaic[]> {
@@ -51,11 +67,11 @@ export const AppMosaics = () => ({
         if (tx.mosaics) return tx.mosaics
         if (tx.mosaicId) return tx.mosaicId
     },
-    
+
     fromAppNamespaces(namespaces: AppNamespace[]): AppMosaic[] {
         return namespaces
-          .filter(({alias}) => alias instanceof MosaicAlias)
-          .map(namespace => AppMosaic.fromNamespace(namespace))
+            .filter(({alias}) => alias instanceof MosaicAlias)
+            .map(namespace => AppMosaic.fromNamespace(namespace))
     },
 
     fromNamespaces(namespaces: Namespace[]): AppMosaic[] {

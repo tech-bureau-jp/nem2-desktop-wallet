@@ -329,10 +329,6 @@ export class TransactionFormTs extends Vue {
             this.showErrorMessage(this.$t(Message.ILLEGAL_PUBLIC_KEY_ERROR))
             return false
         }
-        if (recipient.length < 1 || recipient.length > 40) {
-            this.showErrorMessage(this.$t(Message.ADDRESS_FORMAT_ERROR))
-            return false
-        }
         if (mosaicTransferList.length < 1) {
             this.showErrorMessage(this.$t(Message.MOSAIC_LIST_NULL_ERROR))
             return false

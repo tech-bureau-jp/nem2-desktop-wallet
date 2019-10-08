@@ -92,7 +92,7 @@ export class MonitorInvoiceTs extends Vue {
     // @TODO: review
     qrInfo() {
         return  {
-            mosaicHex: this.activeAccount.networkCurrency.hex,
+            mosaicHex: this.formItem.mosaicHex,
             mosaicAmount: this.formItem.mosaicAmount,
             remarks: this.formItem.remarks,
         }
@@ -218,7 +218,11 @@ export class MonitorInvoiceTs extends Vue {
     createQRCode() {
         if (!this.getWallet.address) return
         const {generationHash, networkType} = this
-        const QRCodeData = {publicKey: this.getWallet.publicKey}
+        const QRCodeData = {
+            mosaicHex:'',
+            mosaicAmount:'',
+            address: this.getWallet.address,
+        }
         this.QRCode = QRCodeGenerator
             .createExportObject(QRCodeData, networkType, generationHash)
             .toBase64()

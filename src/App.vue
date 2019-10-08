@@ -235,7 +235,7 @@
 
             this.$watchAsObservable('wallet')
                 .pipe(
-                    throttleTime(6000, asyncScheduler, {leading: true, trailing: true}),
+                    throttleTime(30000, asyncScheduler, {leading: true, trailing: true}),  // refresh time
                 ).subscribe(({newValue, oldValue}) => {
 
                 /**
