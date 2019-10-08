@@ -137,6 +137,7 @@ export const defaultNetworkConfig = {
     gas2xemRate: 20000,   //  1xem=20000gas
     networkConfirmations: 10,
     defaultNetworkMosaic,
+    DEFAULT_LOCK_AMOUNT:10
 }
 
 export const networkConfig = {
