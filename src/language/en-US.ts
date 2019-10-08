@@ -19,7 +19,7 @@ export const en_US = {
     // community panel
     news: 'News',
     vote: 'Vote',
-
+    Please_enter_a_correct_number:'Please enter a correct number',
 
     //information
     no_more_data: 'No more data',

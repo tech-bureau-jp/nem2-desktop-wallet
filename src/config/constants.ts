@@ -37,7 +37,7 @@ export const Message = {
     OPERATION_SUCCESS: 'successful_operation',
     UPDATE_SUCCESS: 'update_completed',
     NODE_CONNECTION_SUCCEEDED: 'Node_connection_succeeded',
-    PLEASE_ENTER_THE_CORRECT_NUMBER: 'Please_enter_the_correct_number',
+    PLEASE_ENTER_A_CORRECT_NUMBER: 'Please_enter_a_correct_number',
     NOTES_SHOULD_NOT_EXCEED_25_CHARACTER: 'Notes_should_not_exceed_25_character',
 
     PLEASE_SET_WALLET_PASSWORD_INFO: 'please_set_your_wallet_password',

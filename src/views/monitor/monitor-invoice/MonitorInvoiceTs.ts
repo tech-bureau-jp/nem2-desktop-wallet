@@ -4,8 +4,7 @@ import {copyTxt} from '@/core/utils/utils.ts'
 import {Component, Vue, Watch} from 'vue-property-decorator'
 import CollectionRecord from '@/common/vue/collection-record/CollectionRecord.vue'
 import {mapState} from "vuex"
-import {MosaicId, NamespaceId, AliasType} from "nem2-sdk"
-import {NamespaceApiRxjs} from "@/core/api/NamespaceApiRxjs"
+import {MosaicId, TransferTransaction, Deadline, Address, Mosaic, UInt64, PlainMessage} from "nem2-sdk"
 import {TransferType} from "@/core/model/TransferType"
 import {monitorReceiptTransferTypeConfig} from "@/config/view/monitor"
 import {AppInfo, StoreAccount} from "@/core/model"
@@ -25,21 +24,39 @@ import {AppInfo, StoreAccount} from "@/core/model"
 export class MonitorInvoiceTs extends Vue {
     activeAccount: StoreAccount
     app: AppInfo
-    result = ''
-    assetType = ''
-    assetAmount = 0
-    assetAmounts = 0
-    note = ''
-    notes = ''
-    QRCode: string = ''
     transactionHash = ''
     TransferType = TransferType
     isShowDialog = false
     transferTypeList = monitorReceiptTransferTypeConfig
-    formItem = {
+    formItems = {
         mosaicHex: '',
         mosaicAmount: 0,
         remarks: '',
+    }
+
+    get networkCurrency() {
+        return this.activeAccount.networkCurrency
+    }
+    get transferTransaction(): TransferTransaction {
+        const {networkType, address} = this.wallet
+        const walletAddress = Address.createFromRawAddress(address)
+        const {mosaicHex, mosaicAmount, remarks} = this.formItems
+        const mosaic = mosaicHex !== ''
+            ? new MosaicId(mosaicHex) : new MosaicId(this.networkCurrency.hex)
+
+        return TransferTransaction.create(
+            Deadline.create(),
+            walletAddress,
+            [new Mosaic(mosaic, UInt64.fromUint(mosaicAmount))],
+            PlainMessage.create(remarks),
+            networkType
+        );
+    }
+
+    get QRCode(): string {
+        return QRCodeGenerator
+            .createTransactionRequest(this.transferTransaction)
+            .toBase64()
     }
 
     get accountAddress() {
@@ -50,16 +67,8 @@ export class MonitorInvoiceTs extends Vue {
         return this.activeAccount.node
     }
 
-    get getWallet() {
+    get wallet() {
         return this.activeAccount.wallet
-    }
-
-    get generationHash() {
-        return this.activeAccount.generationHash
-    }
-
-    get networkType() {
-        return this.activeAccount.wallet.networkType
     }
 
     get mosaics() {
@@ -89,48 +98,21 @@ export class MonitorInvoiceTs extends Vue {
             }))
     }
 
-    // @TODO: review
-    qrInfo() {
-        return  {
-            mosaicHex: this.formItem.mosaicHex,
-            mosaicAmount: this.formItem.mosaicAmount,
-            remarks: this.formItem.remarks,
-        }
-    }
-
     async checkForm() {
-        const that = this
-        const {node} = this
-        let {mosaicAmount, mosaicHex} = this.formItem
+        let {mosaicAmount, mosaicHex} = this.formItems
         mosaicAmount = Number(mosaicAmount)
         if ((!Number(mosaicAmount) && Number(mosaicAmount) !== 0) || Number(mosaicAmount) < 0) {
             this.showErrorMessage(this.$t(Message.AMOUNT_LESS_THAN_0_ERROR))
             return false
         }
-        if (mosaicHex.indexOf('@') === -1) {
-            try {
-                new MosaicId(mosaicHex)
-            } catch (e) {
-                this.showErrorMessage(this.$t(Message.MOSAIC_HEX_FORMAT_ERROR))
-                return false
-            }
-        } else {
-            const namespaceId = new NamespaceId(mosaicHex.substring(1))
-            let flag = false
-            try {
-                const namespaceInfo: any = await new NamespaceApiRxjs().getNamespace(namespaceId, node).toPromise()
-                if (namespaceInfo.alias.type === AliasType.Mosaic) {
-                    //@ts-ignore
-                    that.formItem.mosaicHex = new MosaicId(namespaceInfo.alias.mosaicId).toHex()
-                }
-            } catch (e) {
-                this.showErrorMessage(this.$t(Message.MOSAIC_ALIAS_NOT_EXIST_ERROR))
-                return false
-            }
+        if (mosaicHex === '') {
+            this.showErrorMessage(this.$t(Message.MOSAIC_LIST_NULL_ERROR))
+            return false
         }
         return true
     }
 
+    // @TODO: does not work
     filterMethod(value, option) {
         return 1
     }
@@ -143,66 +125,30 @@ export class MonitorInvoiceTs extends Vue {
     }
 
     onChange() {
-        let {mosaicAmount} = this.formItem
+        let {mosaicAmount} = this.formItems
         var reg = /^(0|[1-9][0-9]*)(\.\d+)?$/
         if (!reg.test(`${mosaicAmount}`)) {
-            this.showErrorMessage(this.$t(Message.PLEASE_ENTER_THE_CORRECT_NUMBER))
+            this.showErrorMessage(this.$t(Message.PLEASE_ENTER_A_CORRECT_NUMBER))
         }
     }
 
     checkLength() {
-        let {remarks} = this.formItem
+        let {remarks} = this.formItems
         if (remarks.length > 25) {
             this.showErrorMessage(this.$t(Message.NOTES_SHOULD_NOT_EXCEED_25_CHARACTER))
         }
     }
 
-    async generateQR() {
-        const flag = await this.checkForm()
-        if (!flag) {
-            return
-        }
-        this.notes = this.note
-        const {generationHash, networkType} = this
-        const {mosaicHex, mosaicAmount, remarks} = this.formItem
-        const QRCodeData = {
-            type: 1002,
-            address: this.accountAddress,
-            mosaicHex: mosaicHex,
-            mosaicAmount: mosaicAmount,
-            remarks: remarks
-        }
-        this.QRCode = QRCodeGenerator
-            .createExportObject(QRCodeData, networkType, generationHash)
-            .toBase64()
-    }
-
-
     downloadQR() {
-        const {address} = this.getWallet
-        var oQrcode: any = document.querySelector('#qrImg')
-        var url = oQrcode.src
+        const {address} = this.wallet
+        var QRCode: any = document.querySelector('#qrImg')
+        var url = QRCode.src
         var a = document.createElement('a')
         var event = new MouseEvent('click')
         a.download = 'qr_receive_' + address
         a.href = url
         a.dispatchEvent(event)
     }
-
-
-    switchTransferType(index) {
-        const list: any = this.transferTypeList
-        if (list[index].disabled) {
-            return
-        }
-        list.map((item) => {
-            item.isSelect = false
-            return item
-        })
-        list[index].isSelect = true
-        this.transferTypeList = list
-    }
-
 
     copyAddress() {
         const that = this
@@ -214,26 +160,7 @@ export class MonitorInvoiceTs extends Vue {
             )
         })
     }
-
-    createQRCode() {
-        if (!this.getWallet.address) return
-        const {generationHash, networkType} = this
-        const QRCodeData = {
-            mosaicHex:'',
-            mosaicAmount:'',
-            address: this.getWallet.address,
-        }
-        this.QRCode = QRCodeGenerator
-            .createExportObject(QRCodeData, networkType, generationHash)
-            .toBase64()
-    }
-
-    @Watch('getWallet.address')
-    onGetWalletChange() {
-        this.createQRCode()
-    }
-
-    mounted() {
-        this.createQRCode()
+    mounted(){
+        this.formItems.mosaicHex = this.networkCurrency.hex
     }
 }

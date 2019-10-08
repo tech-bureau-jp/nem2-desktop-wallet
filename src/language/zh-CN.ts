@@ -92,7 +92,7 @@ export const zh_CN = {
     transaction_detail: '交易详情',
     no_unconfirmed_transactions: '暂无未确认交易',
     no_confirmed_transactions: '暂无已确认交易',
-
+    Please_enter_a_correct_number:'请输入正确的数字',
     //monitor-market
     highest_price: '最高价格',
     lowest_price: '最低价格',
